@@ -333,17 +333,17 @@ def print_summary_report(summary):
     """Print formatted summary report."""
 
     print("=" * 80)
-    print("🏆 SOUTIAI TRANSCRIPTION ENGINE - FINAL PROJECT SUMMARY")
+    print("SOUTIAI TRANSCRIPTION ENGINE - FINAL PROJECT SUMMARY")
     print("=" * 80)
 
     # Project Info
     info = summary["project_info"]
-    print(f"\n📋 Project: {info['name']} v{info['version']}")
-    print(f"📅 Completed: {info['completion_date']}")
-    print(f"🎯 Purpose: {info['description']}")
+    print(f"\nProject: {info['name']} v{info['version']}")
+    print(f"Completed: {info['completion_date']}")
+    print(f"Purpose: {info['description']}")
 
     # Technical Stack
-    print(f"\n🛠️  TECHNICAL STACK:")
+    print(f"\nTECHNICAL STACK:")
     backend = summary["technical_stack"]["backend"]
     frontend = summary["technical_stack"]["frontend"]
     ai = summary["technical_stack"]["ai_models"]
@@ -353,58 +353,58 @@ def print_summary_report(summary):
     print(f"  AI Models: {ai['speech_recognition']}, {ai['translation']}")
 
     # Core Features
-    print(f"\n⚡ CORE FEATURES:")
+    print(f"\nCORE FEATURES:")
     features = summary["core_features"]
-    print(f"  ✓ Multi-format audio processing (WAV, MP3, MP4, etc.)")
-    print(f"  ✓ Arabic dialect optimization (Egyptian, MSA, Gulf)")
-    print(f"  ✓ Real-time streaming transcription")
-    print(f"  ✓ Voice analytics & speaker diarization")
-    print(f"  ✓ Multi-language translation (60+ languages)")
-    print(f"  ✓ Hierarchical summarization")
-    print(f"  ✓ Intelligent Q&A system")
+    print(f"  * Multi-format audio processing (WAV, MP3, MP4, etc.)")
+    print(f"  * Arabic dialect optimization (Egyptian, MSA, Gulf)")
+    print(f"  * Real-time streaming transcription")
+    print(f"  * Voice analytics & speaker diarization")
+    print(f"  * Multi-language translation (60+ languages)")
+    print(f"  * Hierarchical summarization")
+    print(f"  * Intelligent Q&A system")
 
     # Code Metrics
-    print(f"\n📊 CODE METRICS:")
+    print(f"\nCODE METRICS:")
     metrics = summary["development_quality"]["code_metrics"]
-    print(f"  📁 {metrics['python_files']} Python files")
-    print(f"  📝 {metrics['total_lines_python']:,} lines of code")
-    print(f"  📚 {metrics['documentation_files']} documentation files")
-    print(f"  🧪 {metrics['test_files']} test files")
+    print(f"  Files: {metrics['python_files']} Python files")
+    print(f"  Lines: {metrics['total_lines_python']:,} lines of code")
+    print(f"  Docs: {metrics['documentation_files']} documentation files")
+    print(f"  Tests: {metrics['test_files']} test files")
 
     # Performance
-    print(f"\n🚀 PERFORMANCE:")
+    print(f"\nPERFORMANCE:")
     perf = summary["performance_characteristics"]
-    print(f"  ⚡ Processing: 2-30x real-time (CPU to GPU)")
-    print(f"  🎯 Arabic Accuracy: <12% WER (Egyptian dialect)")
-    print(f"  📈 Scalability: 100+ concurrent jobs")
-    print(f"  💾 Storage: Petabyte-scale with MinIO")
+    print(f"  Speed: 2-30x real-time (CPU to GPU)")
+    print(f"  Accuracy: <12% WER (Egyptian dialect)")
+    print(f"  Scale: 100+ concurrent jobs")
+    print(f"  Storage: Petabyte-scale with MinIO")
 
     # Deployment Options
-    print(f"\n🏭 DEPLOYMENT OPTIONS:")
+    print(f"\nDEPLOYMENT OPTIONS:")
     deploy = summary["deployment_options"]
-    print(f"  💻 Development: Docker Compose (hot reload)")
-    print(f"  🧪 Staging: Kubernetes (production-like)")
-    print(f"  🚀 Production: Kubernetes (high availability)")
-    print(f"  ☁️  Cloud: AWS, GCP, Azure, On-premise")
+    print(f"  Development: Docker Compose (hot reload)")
+    print(f"  Staging: Kubernetes (production-like)")
+    print(f"  Production: Kubernetes (high availability)")
+    print(f"  Cloud: AWS, GCP, Azure, On-premise")
 
     # Learning Resources
-    print(f"\n📚 LEARNING RESOURCES:")
+    print(f"\nLEARNING RESOURCES:")
     learning = summary["learning_resources"]
-    print(f"  👨‍🎓 Junior Developer Guide: 12-week curriculum")
-    print(f"  💻 Code Examples: 50+ practical snippets")
-    print(f"  🎯 Best Practices: Enterprise standards")
-    print(f"  📖 Documentation: Complete API reference")
+    print(f"  Junior Developer Guide: 12-week curriculum")
+    print(f"  Code Examples: 50+ practical snippets")
+    print(f"  Best Practices: Enterprise standards")
+    print(f"  Documentation: Complete API reference")
 
     # Business Impact
-    print(f"\n💼 BUSINESS IMPACT:")
+    print(f"\nBUSINESS IMPACT:")
     impact = summary["business_impact"]
-    print(f"  🎪 Market: Arabic content AI leadership")
-    print(f"  💰 Savings: 90% cost reduction")
-    print(f"  ⚡ Productivity: 80% time reduction")
-    print(f"  🌍 Reach: Millions of Arabic speakers")
+    print(f"  Market: Arabic content AI leadership")
+    print(f"  Savings: 90% cost reduction")
+    print(f"  Productivity: 80% time reduction")
+    print(f"  Reach: Millions of Arabic speakers")
 
     print(f"\n" + "=" * 80)
-    print("🎉 PROJECT COMPLETE - Enterprise AI System Ready for Production!")
+    print("PROJECT COMPLETE - Enterprise AI System Ready for Production!")
     print("=" * 80)
 
 
@@ -417,7 +417,7 @@ def save_summary_report(summary, output_file="project_summary.json"):
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
-    print(f"\n📄 Detailed summary saved to: {output_path}")
+    print(f"\nDetailed summary saved to: {output_path}")
 
 
 def main():
@@ -429,8 +429,8 @@ def main():
     print_summary_report(summary)
     save_summary_report(summary)
 
-    print("\n🎊 SoutiAI Transcription Engine - COMPLETE!")
-    print("🚀 Ready for Arabic AI innovation and enterprise deployment!")
+    print("\nSoutiAI Transcription Engine - COMPLETE!")
+    print("Ready for Arabic AI innovation and enterprise deployment!")
 
 
 if __name__ == "__main__":
