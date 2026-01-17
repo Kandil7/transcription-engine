@@ -63,6 +63,15 @@ curl -X POST "http://localhost:8000/api/v1/qa/{job_id}/ask" \
   -d '{"question": "What are the main points discussed?"}'
 ```
 
+### Get Hierarchical Summary
+```bash
+curl "http://localhost:8000/api/v1/jobs/{job_id}/results"
+# Returns hierarchical summary with multiple levels:
+# - level_1_elevator_pitch: 30-second read
+# - level_2_key_points: 2-minute read
+# - level_3_comprehensive: 5+ minute detailed read
+```
+
 ### Manual Setup
 
 #### Backend Setup
@@ -89,6 +98,8 @@ npm start
 - **Real-time Streaming**: Live transcription with WebSocket support
 - **RAG Integration**: Contextual correction using Arabic knowledge base
 - **Intelligent Q&A**: Ask questions about any transcript with source references
+- **Hierarchical Summarization**: Multi-level summaries (elevator pitch → comprehensive)
+- **Enhanced Translation**: NLLB-powered translation with Arabic post-processing
 - **Enterprise Ready**: Production-grade with observability, scaling, and security
 
 ## 🏗️ Architecture

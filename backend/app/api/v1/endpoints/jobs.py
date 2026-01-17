@@ -38,6 +38,7 @@ class JobResultsResponse(BaseModel):
     transcript: Optional[str] = None
     translation: Optional[str] = None
     summary: Optional[str] = None
+    hierarchical_summary: Optional[dict] = None
     subtitles_srt: Optional[str] = None
     subtitles_vtt: Optional[str] = None
     audio_summary_url: Optional[str] = None
@@ -113,6 +114,7 @@ async def get_job_results_endpoint(job_id: str) -> JobResultsResponse:
             transcript=results.get("transcript"),
             translation=results.get("translation"),
             summary=results.get("summary"),
+            hierarchical_summary=results.get("hierarchical_summary"),
             subtitles_srt=results.get("subtitles_srt"),
             subtitles_vtt=results.get("subtitles_vtt"),
             audio_summary_url=results.get("audio_summary_url"),

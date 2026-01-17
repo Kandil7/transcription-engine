@@ -83,12 +83,32 @@ def process_transcription_job(self, job_id: str):
 
         # Step 4: Summarization (if enabled)
         summary = None
+        hierarchical_summary = None
         if job.enable_summary:
-            update_job_progress(job_id, 80.0, "Generating summary...")
-            summary = await summarization_service.summarize_text(
-                text=translation or transcript,
-                length=job.summary_length or "medium"
+            update_job_progress(job_id, 80.0, "Generating hierarchical summary...")
+
+            # Generate hierarchical summary for better navigation
+            hierarchical_result = await summarization_service.generate_hierarchical_summary(
+                translation or transcript
             )
+
+            if hierarchical_result:
+                # Use the appropriate level based on user preference
+                summary_length = job.summary_length or "medium"
+                level_map = {
+                    "short": "level_1_elevator_pitch",
+                    "medium": "level_2_key_points",
+                    "long": "level_3_comprehensive"
+                }
+                summary_key = level_map.get(summary_length, "level_2_key_points")
+                summary = hierarchical_result.get(summary_key, "")
+                hierarchical_summary = hierarchical_result
+            else:
+                # Fallback to regular summarization
+                summary = await summarization_service.summarize_text(
+                    text=translation or transcript,
+                    length=job.summary_length or "medium"
+                )
 
         # Step 5: Generate outputs
         update_job_progress(job_id, 90.0, "Generating output files...")
@@ -113,15 +133,18 @@ def process_transcription_job(self, job_id: str):
             "qa_system_ready": True,
         }
 
-        # Mark job as completed
-        await mark_job_completed(
-            job_id=job_id,
-            transcript=transcript,
-            translation=translation,
-            summary=summary,
+        # Prepare final results
+        final_results = {
+            "transcript": transcript,
+            "translation": translation,
+            "summary": summary,
+            "hierarchical_summary": hierarchical_summary,
             **outputs,
-            processing_stats=processing_stats
-        )
+            "processing_stats": processing_stats
+        }
+
+        # Mark job as completed
+        await mark_job_completed(job_id=job_id, **final_results)
 
         logger.info(
             "Job processing completed",

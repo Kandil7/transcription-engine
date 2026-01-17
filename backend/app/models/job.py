@@ -74,6 +74,7 @@ class Job(BaseModel):
     transcript: Optional[str] = None
     translation: Optional[str] = None
     summary: Optional[str] = None
+    hierarchical_summary: Optional[dict] = None
     subtitles_srt: Optional[str] = None
     subtitles_vtt: Optional[str] = None
     audio_summary_url: Optional[str] = None

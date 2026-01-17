@@ -235,6 +235,64 @@ function JobDetails() {
                 </Card>
               )}
 
+              {results.hierarchical_summary && (
+                <Card sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Hierarchical Summary
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Multiple levels of summarization for different needs
+                    </Typography>
+
+                    <Box sx={{ mt: 2 }}>
+                      {results.hierarchical_summary.level_1_elevator_pitch && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="subtitle1" color="primary" gutterBottom>
+                            📄 Elevator Pitch (30 seconds read)
+                          </Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', pl: 2 }}>
+                            {results.hierarchical_summary.level_1_elevator_pitch}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {results.hierarchical_summary.level_2_key_points && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="subtitle1" color="primary" gutterBottom>
+                            🎯 Key Points (2 minutes read)
+                          </Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', pl: 2 }}>
+                            {results.hierarchical_summary.level_2_key_points}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {results.hierarchical_summary.level_3_comprehensive && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="subtitle1" color="primary" gutterBottom>
+                            📚 Comprehensive Summary (5+ minutes read)
+                          </Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', pl: 2 }}>
+                            {results.hierarchical_summary.level_3_comprehensive}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {results.hierarchical_summary.metadata && (
+                      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          Generated using {results.hierarchical_summary.metadata.method} •
+                          Original text: {results.hierarchical_summary.metadata.original_length} characters •
+                          {results.hierarchical_summary.metadata.levels_generated} summary levels
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {results && (
                 <Card sx={{ mt: 3 }}>
                   <CardContent>

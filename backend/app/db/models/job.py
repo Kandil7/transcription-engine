@@ -29,6 +29,7 @@ class Job(Base):
     transcript = Column(Text, nullable=True)
     translation = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
+    hierarchical_summary = Column(JSON, nullable=True)
     subtitles_srt = Column(Text, nullable=True)
     subtitles_vtt = Column(Text, nullable=True)
     audio_summary_url = Column(Text, nullable=True)
