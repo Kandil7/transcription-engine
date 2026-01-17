@@ -84,6 +84,17 @@ curl "http://localhost:8000/api/v1/stream/{session_id}/status"
 curl -X POST "http://localhost:8000/api/v1/stream/{session_id}/stop"
 ```
 
+### Analyze Voice (Speaker Diarization & Emotions)
+```bash
+curl -X POST "http://localhost:8000/api/v1/voice/{job_id}/analyze"
+# Returns speaker segments, emotions, and meeting analytics
+```
+
+### Get Voice Analytics Models Status
+```bash
+curl "http://localhost:8000/api/v1/voice/models/status"
+```
+
 ### Get Hierarchical Summary
 ```bash
 curl "http://localhost:8000/api/v1/jobs/{job_id}/results"
@@ -119,6 +130,8 @@ npm start
 - **Real-time Streaming**: Live transcription with WebSocket support (2-second latency)
 - **RAG Integration**: Contextual correction using Arabic knowledge base
 - **Intelligent Q&A**: Ask questions about any transcript with source references
+- **Voice Analytics**: Speaker diarization and emotion detection for meetings
+- **Meeting Insights**: Participation analysis and conversation dynamics
 - **Hierarchical Summarization**: Multi-level summaries (elevator pitch → comprehensive)
 - **Enhanced Translation**: NLLB-powered translation with Arabic post-processing
 - **Live Captioning**: Real-time streaming for meetings and events

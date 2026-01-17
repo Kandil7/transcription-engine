@@ -11,6 +11,7 @@ from app.services.transcription_service import transcription_service
 from app.services.translation_service import translation_service
 from app.services.summarization_service import summarization_service
 from app.services.rag_service import rag_service
+from app.services.voice_analytics_service import voice_analytics_service
 from app.tasks.celery_app import celery_app
 from app.utils.audio import extract_audio_from_video, split_audio_into_chunks, validate_audio_file
 from structlog import get_logger
@@ -57,9 +58,43 @@ def process_transcription_job(self, job_id: str):
             language=job.language,
         )
 
-        update_job_progress(job_id, 50.0, "Transcription completed, applying RAG correction...")
+        update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers...")
 
-        # Step 2.5: RAG Correction (if enabled)
+        # Step 2.5: Voice Analytics (speaker diarization and emotion detection)
+        voice_analytics_result = None
+        if settings.enable_voice_analytics:
+            try:
+                # Perform speaker diarization
+                diarization_segments = await voice_analytics_service.perform_diarization(audio_path)
+
+                # Analyze emotions
+                enhanced_segments = await voice_analytics_service.analyze_emotions(
+                    audio_path, diarization_segments
+                )
+
+                # Combine with transcription segments
+                speaker_segments = await voice_analytics_service.combine_transcription_and_diarization(
+                    segments, enhanced_segments
+                )
+
+                # Analyze meeting dynamics
+                meeting_analysis = await voice_analytics_service.analyze_meeting_dynamics(
+                    speaker_segments
+                )
+
+                voice_analytics_result = {
+                    "speaker_segments": speaker_segments,
+                    "meeting_analysis": meeting_analysis,
+                }
+
+                logger.info("Voice analytics completed", job_id=job_id, speakers=len(set(s["speaker"] for s in speaker_segments)))
+
+            except Exception as e:
+                logger.warning("Voice analytics failed, continuing without it", job_id=job_id, error=str(e))
+
+        update_job_progress(job_id, 55.0, "Voice analysis completed, applying RAG correction...")
+
+        # Step 3: RAG Correction (if enabled)
         if settings.enable_rag and job.language in ["ar", "arabic"]:
             try:
                 corrected_transcript = await rag_service.correct_transcription(transcript, job_id)
@@ -130,6 +165,7 @@ def process_transcription_job(self, job_id: str):
             "profile_used": settings.detected_profile.value,
             "gpu_used": settings.gpu_memory_gb > 0,
             "rag_correction_applied": settings.enable_rag and job.language in ["ar", "arabic"],
+            "voice_analytics_applied": settings.enable_voice_analytics and voice_analytics_result is not None,
             "qa_system_ready": True,
         }
 
@@ -139,6 +175,7 @@ def process_transcription_job(self, job_id: str):
             "translation": translation,
             "summary": summary,
             "hierarchical_summary": hierarchical_summary,
+            "voice_analytics": voice_analytics_result,
             **outputs,
             "processing_stats": processing_stats
         }

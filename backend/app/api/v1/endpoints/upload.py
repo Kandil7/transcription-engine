@@ -33,6 +33,7 @@ async def upload_audio_file(
     language: str = Form("ar", description="Language code (ar, en, etc.)"),
     enable_translation: bool = Form(True, description="Enable translation to English"),
     enable_summary: bool = Form(True, description="Enable summarization"),
+    enable_voice_analytics: bool = Form(False, description="Enable voice analytics (speaker diarization & emotion detection)"),
     target_language: str = Form("en", description="Target language for translation"),
     summary_length: str = Form("medium", description="Summary length (short/medium/long)"),
 ) -> UploadResponse:
@@ -101,6 +102,7 @@ async def upload_audio_file(
             status=JobStatus.PENDING,
             enable_translation=enable_translation,
             enable_summary=enable_summary,
+            enable_voice_analytics=enable_voice_analytics,
             target_language=target_language,
             summary_length=summary_length,
         )

@@ -29,6 +29,7 @@ function Upload() {
     language: 'ar',
     enableTranslation: true,
     enableSummary: true,
+    enableVoiceAnalytics: false,
     targetLanguage: 'en',
     summaryLength: 'medium'
   });
@@ -70,6 +71,7 @@ function Upload() {
     formData.append('language', settings.language);
     formData.append('enable_translation', settings.enableTranslation.toString());
     formData.append('enable_summary', settings.enableSummary.toString());
+    formData.append('enable_voice_analytics', settings.enableVoiceAnalytics.toString());
     formData.append('target_language', settings.targetLanguage);
     formData.append('summary_length', settings.summaryLength);
 
@@ -203,6 +205,16 @@ function Upload() {
                 />
               }
               label="Enable Summarization"
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={settings.enableVoiceAnalytics}
+                  onChange={(e) => handleSettingChange('enableVoiceAnalytics', e.target.checked)}
+                />
+              }
+              label="Enable Voice Analytics (Speaker Diarization & Emotion Detection)"
             />
 
             {settings.enableSummary && (

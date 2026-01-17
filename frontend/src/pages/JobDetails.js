@@ -293,6 +293,151 @@ function JobDetails() {
                 </Card>
               )}
 
+              {results.voice_analytics && results.voice_analytics.meeting_analysis && (
+                <Card sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      🎭 Meeting Analytics
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Speaker participation and meeting dynamics
+                    </Typography>
+
+                    <Grid container spacing={3} sx={{ mt: 1 }}>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 1, color: 'white' }}>
+                          <Typography variant="h6">
+                            {results.voice_analytics.meeting_analysis.total_speakers}
+                          </Typography>
+                          <Typography variant="body2">
+                            Total Speakers
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 1, color: 'white' }}>
+                          <Typography variant="h6">
+                            {Math.round(results.voice_analytics.meeting_analysis.total_duration)}s
+                          </Typography>
+                          <Typography variant="body2">
+                            Total Duration
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ p: 2, bgcolor: 'success.light', borderRadius: 1, color: 'white' }}>
+                          <Typography variant="h6">
+                            {results.voice_analytics.meeting_analysis.meeting_balance_score}%
+                          </Typography>
+                          <Typography variant="body2">
+                            Balance Score
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+
+                    {results.voice_analytics.meeting_analysis.dominant_speaker && (
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                          👑 Dominant Speaker: {results.voice_analytics.meeting_analysis.dominant_speaker}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {results.voice_analytics.meeting_analysis.speaker_stats && (
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Speaker Statistics
+                        </Typography>
+                        {Object.entries(results.voice_analytics.meeting_analysis.speaker_stats).map(([speaker, stats]) => (
+                          <Box key={speaker} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                            <Typography variant="subtitle2" color="primary">
+                              {speaker}
+                            </Typography>
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                              <Grid item xs={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Speech Time
+                                </Typography>
+                                <Typography variant="body1">
+                                  {Math.round(stats.total_speech_time)}s ({stats.speech_percentage.toFixed(1)}%)
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Segments
+                                </Typography>
+                                <Typography variant="body1">
+                                  {stats.segment_count}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Avg Length
+                                </Typography>
+                                <Typography variant="body1">
+                                  {stats.avg_segment_length.toFixed(1)}s
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                            {stats.emotions && Object.keys(stats.emotions).length > 0 && (
+                              <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Emotions: {Object.entries(stats.emotions).map(([emotion, count]) =>
+                                    `${emotion}(${count})`
+                                  ).join(', ')}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {results.voice_analytics && results.voice_analytics.speaker_segments && (
+                <Card sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      👥 Speaker Segments
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Transcription with speaker attribution and emotion analysis
+                    </Typography>
+
+                    <Box sx={{ mt: 2, maxHeight: 400, overflow: 'auto' }}>
+                      {results.voice_analytics.speaker_segments.map((segment, index) => (
+                        <Box key={index} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip
+                                label={segment.speaker}
+                                color="primary"
+                                size="small"
+                              />
+                              <Chip
+                                label={segment.emotion}
+                                variant="outlined"
+                                size="small"
+                              />
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {segment.start.toFixed(1)}s - {segment.end.toFixed(1)}s
+                              ({segment.duration.toFixed(1)}s)
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" sx={{ pl: 1 }}>
+                            {segment.text}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
+
               {results && (
                 <Card sx={{ mt: 3 }}>
                   <CardContent>
