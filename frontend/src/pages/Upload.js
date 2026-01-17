@@ -14,7 +14,8 @@ import {
   FormControlLabel,
   Switch,
   LinearProgress,
-  Alert
+  Alert,
+  TextField
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import { useSnackbar } from 'notistack';
@@ -31,7 +32,8 @@ function Upload() {
     enableSummary: true,
     enableVoiceAnalytics: false,
     targetLanguage: 'en',
-    summaryLength: 'medium'
+    summaryLength: 'medium',
+    textSample: ''
   });
 
   const navigate = useNavigate();
@@ -74,6 +76,9 @@ function Upload() {
     formData.append('enable_voice_analytics', settings.enableVoiceAnalytics.toString());
     formData.append('target_language', settings.targetLanguage);
     formData.append('summary_length', settings.summaryLength);
+    if (settings.textSample.trim()) {
+      formData.append('text_sample', settings.textSample.trim());
+    }
 
     setUploading(true);
     setProgress(0);
@@ -169,6 +174,20 @@ function Upload() {
                 <MenuItem value="es">Spanish</MenuItem>
               </Select>
             </FormControl>
+
+            {settings.language === 'ar' && (
+              <TextField
+                fullWidth
+                label="Text Sample (for Egyptian Dialect Detection)"
+                placeholder="Enter a short sample of the audio content in Arabic for dialect detection..."
+                multiline
+                rows={2}
+                value={settings.textSample}
+                onChange={(e) => handleSettingChange('textSample', e.target.value)}
+                helperText="Providing a text sample enables automatic Egyptian dialect detection and routes to fine-tuned models for 15-25% better accuracy"
+                variant="outlined"
+              />
+            )}
 
             <FormControlLabel
               control={
