@@ -16,13 +16,19 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  CircularProgress
+  CircularProgress,
+  Tab,
+  Tabs
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import DownloadIcon from '@mui/icons-material/Download';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import Timeline from '../components/Timeline';
+import SearchAndFilter from '../components/SearchAndFilter';
+import InteractiveTranscript from '../components/InteractiveTranscript';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 function JobDetails() {
   const { jobId } = useParams();
@@ -32,6 +38,10 @@ function JobDetails() {
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
   const [answers, setAnswers] = useState([]);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredSegments, setFilteredSegments] = useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -56,6 +66,67 @@ function JobDetails() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Extract segments from voice analytics for timeline and transcript
+  const getSegments = () => {
+    if (results?.voice_analytics?.speaker_segments) {
+      return results.voice_analytics.speaker_segments;
+    }
+    return [];
+  };
+
+  const getSpeakers = () => {
+    const segments = getSegments();
+    return [...new Set(segments.map(s => s.speaker).filter(Boolean))];
+  };
+
+  const getEmotions = () => {
+    const segments = getSegments();
+    return [...new Set(segments.map(s => s.emotion).filter(Boolean))];
+  };
+
+  const handleSearch = async (searchParams) => {
+    // Simple client-side search for now
+    const segments = getSegments();
+    let filtered = segments;
+
+    // Text search
+    if (searchParams.query) {
+      const query = searchParams.query.toLowerCase();
+      filtered = filtered.filter(segment =>
+        segment.text?.toLowerCase().includes(query)
+      );
+    }
+
+    // Speaker filter
+    if (searchParams.speakers?.length > 0) {
+      filtered = filtered.filter(segment =>
+        searchParams.speakers.includes(segment.speaker)
+      );
+    }
+
+    // Emotion filter
+    if (searchParams.emotions?.length > 0) {
+      filtered = filtered.filter(segment =>
+        searchParams.emotions.includes(segment.emotion)
+      );
+    }
+
+    // Time range filter
+    if (searchParams.timeRange) {
+      const [startTime, endTime] = searchParams.timeRange;
+      filtered = filtered.filter(segment =>
+        segment.start >= startTime && segment.end <= endTime
+      );
+    }
+
+    return filtered;
+  };
+
+  const handleFilter = (filters) => {
+    // Apply filters to current view
+    console.log('Applying filters:', filters);
   };
 
   const askQuestion = async () => {
@@ -126,11 +197,230 @@ function JobDetails() {
     );
   }
 
+  const segments = getSegments();
+  const speakers = getSpeakers();
+  const emotions = getEmotions();
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Job Details
       </Typography>
+
+      {/* Job Status Card */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {job.filename}
+          </Typography>
+
+          <Box mb={2}>
+            <Chip
+              label={job.status}
+              color={getStatusColor(job.status)}
+              size="small"
+            />
+          </Box>
+
+          {job.progress !== null && job.progress !== undefined && (
+            <Box mb={2}>
+              <LinearProgress
+                variant="determinate"
+                value={job.progress}
+                sx={{ mb: 1 }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                {job.progress}% complete
+              </Typography>
+            </Box>
+          )}
+
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={6}>
+              <Typography variant="body2" color="text.secondary">
+                Language
+              </Typography>
+              <Typography variant="body1">{job.language}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body2" color="text.secondary">
+                Created
+              </Typography>
+              <Typography variant="body1">
+                {new Date(job.created_at).toLocaleString()}
+              </Typography>
+            </Grid>
+            {job.duration && (
+              <Grid item xs={6}>
+                <Typography variant="body2" color="text.secondary">
+                  Duration
+                </Typography>
+                <Typography variant="body1">
+                  {Math.round(job.duration)}s
+                </Typography>
+              </Grid>
+            )}
+          </Grid>
+
+          {job.message && (
+            <Alert severity={job.status === 'failed' ? 'error' : 'info'} sx={{ mb: 2 }}>
+              {job.message}
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tab Navigation */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={currentTab} onChange={(e, newValue) => setCurrentTab(newValue)}>
+          <Tab label="Overview" />
+          <Tab label="Transcript" />
+          <Tab label="Analytics" disabled={!results?.voice_analytics} />
+          <Tab label="Q&A" />
+        </Tabs>
+      </Box>
+
+      {/* Tab Content */}
+      {currentTab === 0 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            {/* Timeline */}
+            {segments.length > 0 && (
+              <Timeline
+                segments={segments}
+                duration={job.duration || 0}
+                currentTime={currentTime}
+                onTimeChange={setCurrentTime}
+                speakers={speakers}
+                emotions={emotions}
+              />
+            )}
+
+            {/* Basic transcript */}
+            {results?.transcript && (
+              <Card sx={{ mt: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Full Transcript
+                  </Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {results.transcript}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Downloads
+                </Typography>
+
+                {results && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {results.transcript && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => handleDownload(results.transcript, 'transcript.txt')}
+                        fullWidth
+                      >
+                        Transcript
+                      </Button>
+                    )}
+
+                    {results.translation && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => handleDownload(results.translation, 'translation.txt')}
+                        fullWidth
+                      >
+                        Translation
+                      </Button>
+                    )}
+
+                    {results.summary && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => handleDownload(results.summary, 'summary.txt')}
+                        fullWidth
+                      >
+                        Summary
+                      </Button>
+                    )}
+
+                    {results.subtitles_srt && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => handleDownload(results.subtitles_srt, 'subtitles.srt')}
+                        fullWidth
+                      >
+                        SRT Subtitles
+                      </Button>
+                    )}
+
+                    {results.subtitles_vtt && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        onClick={() => handleDownload(results.subtitles_vtt, 'subtitles.vtt')}
+                        fullWidth
+                      >
+                        VTT Subtitles
+                      </Button>
+                    )}
+                  </Box>
+                )}
+
+                {!results && job.status !== 'completed' && (
+                  <Typography variant="body2" color="text.secondary">
+                    Downloads will be available once processing is complete.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {currentTab === 1 && (
+        <Box>
+          {/* Search and Filter */}
+          <SearchAndFilter
+            onSearch={handleSearch}
+            onFilter={handleFilter}
+            speakers={speakers}
+            emotions={emotions}
+            duration={job.duration || 0}
+            totalSegments={segments.length}
+          />
+
+          {/* Interactive Transcript */}
+          <InteractiveTranscript
+            segments={segments}
+            currentTime={currentTime}
+            onTimeChange={setCurrentTime}
+            searchQuery={searchQuery}
+            speakers={speakers}
+            emotions={emotions}
+          />
+        </Box>
+      )}
+
+      {currentTab === 2 && results?.voice_analytics && (
+        <AnalyticsDashboard
+          voiceAnalytics={results.voice_analytics}
+          duration={job.duration || 0}
+        />
+      )}
+
+      {currentTab === 3 && (
+        results && (
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
