@@ -107,6 +107,10 @@ async def upload_audio_file(
 
         await create_job(job_data)
 
+        # Start the processing task
+        from app.tasks.transcription_tasks import process_transcription_job
+        process_transcription_job.delay(job_id)
+
         # Estimate processing time based on hardware profile
         estimated_seconds = _estimate_processing_time(audio_info["duration"])
 
