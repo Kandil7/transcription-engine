@@ -1,5 +1,9 @@
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+  security-events: write
+
 on:
   push:
     branches: [ main, dev ]
@@ -128,6 +132,7 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Docker Build and Push
   build-and-push:
