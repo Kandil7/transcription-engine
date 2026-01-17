@@ -1,7 +1,11 @@
-# Core AI/ML Libraries
+# PyTorch packages (from PyTorch index for CUDA support)
+--index-url https://download.pytorch.org/whl/cu121
 torch>=2.0.0
 torchvision>=0.15.0
 torchaudio>=2.0.0
+
+# Regular packages (from PyPI)
+--index-url https://pypi.org/simple/
 transformers>=4.35.0
 accelerate>=0.24.0
 bitsandbytes>=0.41.0  # For quantization
@@ -89,6 +93,3 @@ python-dotenv>=1.0.0
 httpx>=0.25.0
 tenacity>=8.2.0
 loguru>=0.7.0
-
-# GPU Support (CUDA)
---index-url https://download.pytorch.org/whl/cu121
