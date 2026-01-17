@@ -8,7 +8,7 @@ An advanced AI-powered transcription, translation, and summarization engine opti
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Kandil7/transcription-engine.git
 cd transcription-engine
 
 # Start all services
