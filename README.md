@@ -63,6 +63,27 @@ curl -X POST "http://localhost:8000/api/v1/qa/{job_id}/ask" \
   -d '{"question": "What are the main points discussed?"}'
 ```
 
+### Start Live Streaming Session
+```bash
+# Start a streaming session
+curl -X POST "http://localhost:8000/api/v1/stream/{session_id}/start" \
+  -H "Content-Type: application/json" \
+  -d '{"language": "ar"}'
+
+# Returns WebSocket URL for real-time transcription
+# ws://localhost:8000/api/v1/ws/stream/{session_id}
+```
+
+### Get Streaming Status
+```bash
+curl "http://localhost:8000/api/v1/stream/{session_id}/status"
+```
+
+### Stop Streaming Session
+```bash
+curl -X POST "http://localhost:8000/api/v1/stream/{session_id}/stop"
+```
+
 ### Get Hierarchical Summary
 ```bash
 curl "http://localhost:8000/api/v1/jobs/{job_id}/results"
@@ -95,11 +116,12 @@ npm start
 - **High-Speed Transcription**: Process 1-hour videos in 3-7 minutes using Whisper large-v3
 - **Adaptive Engine**: Automatically detects hardware and optimizes for ULTRA/STD/CPU/EDGE profiles
 - **Arabic Excellence**: Fine-tuned for Egyptian dialect with 95%+ accuracy
-- **Real-time Streaming**: Live transcription with WebSocket support
+- **Real-time Streaming**: Live transcription with WebSocket support (2-second latency)
 - **RAG Integration**: Contextual correction using Arabic knowledge base
 - **Intelligent Q&A**: Ask questions about any transcript with source references
 - **Hierarchical Summarization**: Multi-level summaries (elevator pitch → comprehensive)
 - **Enhanced Translation**: NLLB-powered translation with Arabic post-processing
+- **Live Captioning**: Real-time streaming for meetings and events
 - **Enterprise Ready**: Production-grade with observability, scaling, and security
 
 ## 🏗️ Architecture

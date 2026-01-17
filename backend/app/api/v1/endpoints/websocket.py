@@ -7,6 +7,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from structlog import get_logger
 
 from app.services.job_service import get_job
+from app.services.streaming_service import streaming_service
 from app.services.websocket_manager import WebSocketManager
 
 logger = get_logger(__name__)
@@ -94,42 +95,54 @@ async def streaming_transcription_websocket(websocket: WebSocket, session_id: st
 
     logger.info("Streaming transcription session started", session_id=session_id)
 
+    # Initialize streaming session
+    await streaming_service.start_stream(session_id)
+
     try:
         # Send session confirmation
         await websocket.send_json({
             "type": "session_started",
             "session_id": session_id,
-            "message": "Streaming transcription session started"
+            "message": "Real-time streaming transcription session started"
         })
 
         # Keep connection alive for streaming
         while True:
             try:
                 # Receive audio data from client
-                data = await websocket.receive_bytes()
+                audio_chunk = await websocket.receive_bytes()
 
-                # Process audio chunk (this would integrate with streaming whisper)
-                # For now, send back a placeholder response
-                await websocket.send_json({
-                    "type": "transcription_chunk",
-                    "session_id": session_id,
-                    "timestamp": "00:00:00",
-                    "text": "Processing audio chunk...",
-                    "confidence": 0.95
-                })
+                # Process audio chunk in real-time
+                async for result in streaming_service.process_audio_chunk(session_id, audio_chunk):
+                    await websocket.send_json(result)
 
             except Exception as e:
                 logger.error("Streaming processing error", session_id=session_id, error=str(e))
                 await websocket.send_json({
                     "type": "error",
                     "session_id": session_id,
-                    "message": "Processing error occurred"
+                    "message": f"Processing error: {str(e)}"
                 })
 
     except WebSocketDisconnect:
         logger.info("Streaming WebSocket disconnected", session_id=session_id)
+
+        # Get final results before cleanup
+        try:
+            final_results = await streaming_service.end_stream(session_id)
+            await websocket.send_json({
+                "type": "session_ended",
+                "session_id": session_id,
+                "final_results": final_results
+            })
+        except Exception as e:
+            logger.error("Error getting final results", session_id=session_id, error=str(e))
+
     except Exception as e:
         logger.error("Streaming WebSocket error", session_id=session_id, error=str(e))
     finally:
         # Clean up streaming session
-        pass
+        try:
+            await streaming_service.end_stream(session_id)
+        except Exception as cleanup_error:
+            logger.error("Error during streaming cleanup", session_id=session_id, error=str(cleanup_error))
