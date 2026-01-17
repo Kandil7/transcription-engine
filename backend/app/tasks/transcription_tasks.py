@@ -51,12 +51,40 @@ def process_transcription_job(self, job_id: str):
 
         update_job_progress(job_id, 20.0, "Audio prepared, starting transcription...")
 
-        # Step 2: Transcription
-        transcript, segments, trans_stats = await transcription_service.transcribe_audio(
-            job_id=job_id,
-            audio_path=audio_path,
-            language=job.language,
-        )
+        # Step 2: Transcription with dialect adaptation
+        dialect_info = None
+
+        # Try dialect-adaptive transcription first (for Arabic content)
+        if job.language in ["ar", "arabic"] and hasattr(job, 'text_sample') and job.text_sample:
+            try:
+                logger.info("Attempting dialect-adaptive transcription", job_id=job_id)
+                result = await transcription_service.transcribe_with_dialect_adaptation(
+                    job_id=job_id,
+                    audio_path=audio_path,
+                    text_sample=job.text_sample,
+                    language=job.language,
+                )
+                transcript, segments, trans_stats, dialect_info = result
+                logger.info("Dialect-adaptive transcription successful",
+                          job_id=job_id,
+                          dialect=dialect_info.get('primary_dialect') if dialect_info else None)
+
+            except Exception as e:
+                logger.warning("Dialect-adaptive transcription failed, falling back to standard",
+                             job_id=job_id, error=str(e))
+                # Fall back to standard transcription
+                transcript, segments, trans_stats = await transcription_service.transcribe_audio(
+                    job_id=job_id,
+                    audio_path=audio_path,
+                    language=job.language,
+                )
+        else:
+            # Standard transcription for non-Arabic or when no text sample available
+            transcript, segments, trans_stats = await transcription_service.transcribe_audio(
+                job_id=job_id,
+                audio_path=audio_path,
+                language=job.language,
+            )
 
         update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers...")
 
