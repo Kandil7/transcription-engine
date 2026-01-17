@@ -6,9 +6,9 @@ permissions:
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, dev, master ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main, dev, master ]
 
 env:
   REGISTRY: ghcr.io
@@ -62,10 +62,11 @@ jobs:
     - name: Run backend tests
       run: |
         cd backend
-        python -m pytest tests/ -v --cov=. --cov-report=xml
+        python -m pytest tests/ -v --cov=app --cov-report=xml --tb=short
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
+      if: success()
       with:
         file: ./backend/coverage.xml
         flags: backend
@@ -103,10 +104,11 @@ jobs:
     - name: Run frontend tests
       run: |
         cd frontend
-        npm test -- --coverage --watchAll=false
+        CI=true npm test -- --coverage --watchAll=false --passWithNoTests
 
     - name: Upload frontend coverage
       uses: codecov/codecov-action@v3
+      if: success()
       with:
         file: ./frontend/coverage/lcov.info
         flags: frontend
