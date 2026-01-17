@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from structlog import get_logger
 
+from app.core.exceptions import JobNotFoundError
 from app.models.job import JobStatus
 from app.services.job_service import get_job, get_job_results, get_user_jobs
 

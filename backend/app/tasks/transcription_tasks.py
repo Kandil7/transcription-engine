@@ -31,6 +31,8 @@ def process_transcription_job(self, job_id: str):
     4. Summarization (if enabled)
     5. Generate outputs (SRT, VTT, etc.)
     """
+    import asyncio
+
     start_time = time.time()
     logger.info("Starting job processing", job_id=job_id)
 
@@ -44,8 +46,8 @@ def process_transcription_job(self, job_id: str):
         # Update job status
         update_job(job_id, JobStatus.PREPROCESSING, 10.0, "Preparing audio...")
 
-        # Step 1: Preprocessing
-        audio_path = await _preprocess_audio(job)
+        # Step 1: Preprocessing - Run async function in sync context
+        audio_path = asyncio.run(_preprocess_audio(job))
         if not audio_path:
             raise Exception("Audio preprocessing failed")
 
@@ -58,12 +60,12 @@ def process_transcription_job(self, job_id: str):
         if job.language in ["ar", "arabic"] and hasattr(job, 'text_sample') and job.text_sample:
             try:
                 logger.info("Attempting dialect-adaptive transcription", job_id=job_id)
-                result = await transcription_service.transcribe_with_dialect_adaptation(
+                result = asyncio.run(transcription_service.transcribe_with_dialect_adaptation(
                     job_id=job_id,
                     audio_path=audio_path,
                     text_sample=job.text_sample,
                     language=job.language,
-                )
+                ))
                 transcript, segments, trans_stats, dialect_info = result
                 logger.info("Dialect-adaptive transcription successful",
                           job_id=job_id,
@@ -73,18 +75,18 @@ def process_transcription_job(self, job_id: str):
                 logger.warning("Dialect-adaptive transcription failed, falling back to standard",
                              job_id=job_id, error=str(e))
                 # Fall back to standard transcription
-                transcript, segments, trans_stats = await transcription_service.transcribe_audio(
+                transcript, segments, trans_stats = asyncio.run(transcription_service.transcribe_audio(
                     job_id=job_id,
                     audio_path=audio_path,
                     language=job.language,
-                )
+                ))
         else:
             # Standard transcription for non-Arabic or when no text sample available
-            transcript, segments, trans_stats = await transcription_service.transcribe_audio(
+            transcript, segments, trans_stats = asyncio.run(transcription_service.transcribe_audio(
                 job_id=job_id,
                 audio_path=audio_path,
                 language=job.language,
-            )
+            ))
 
         update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers...")
 
@@ -93,22 +95,22 @@ def process_transcription_job(self, job_id: str):
         if settings.enable_voice_analytics:
             try:
                 # Perform speaker diarization
-                diarization_segments = await voice_analytics_service.perform_diarization(audio_path)
+                diarization_segments = asyncio.run(voice_analytics_service.perform_diarization(audio_path))
 
                 # Analyze emotions
-                enhanced_segments = await voice_analytics_service.analyze_emotions(
+                enhanced_segments = asyncio.run(voice_analytics_service.analyze_emotions(
                     audio_path, diarization_segments
-                )
+                ))
 
                 # Combine with transcription segments
-                speaker_segments = await voice_analytics_service.combine_transcription_and_diarization(
+                speaker_segments = asyncio.run(voice_analytics_service.combine_transcription_and_diarization(
                     segments, enhanced_segments
-                )
+                ))
 
                 # Analyze meeting dynamics
-                meeting_analysis = await voice_analytics_service.analyze_meeting_dynamics(
+                meeting_analysis = asyncio.run(voice_analytics_service.analyze_meeting_dynamics(
                     speaker_segments
-                )
+                ))
 
                 voice_analytics_result = {
                     "speaker_segments": speaker_segments,
@@ -125,7 +127,7 @@ def process_transcription_job(self, job_id: str):
         # Step 3: RAG Correction (if enabled)
         if settings.enable_rag and job.language in ["ar", "arabic"]:
             try:
-                corrected_transcript = await rag_service.correct_transcription(transcript, job_id)
+                corrected_transcript = asyncio.run(rag_service.correct_transcription(transcript, job_id))
                 if corrected_transcript:
                     transcript = corrected_transcript
                     logger.info("RAG correction applied", job_id=job_id)
@@ -138,11 +140,11 @@ def process_transcription_job(self, job_id: str):
         translation = None
         if job.enable_translation:
             update_job_progress(job_id, 70.0, "Translating content...")
-            translation = await translation_service.translate_text(
+            translation = asyncio.run(translation_service.translate_text(
                 text=transcript,
                 source_lang=job.language,
                 target_lang=job.target_language or "en"
-            )
+            ))
 
         # Step 4: Summarization (if enabled)
         summary = None
@@ -151,9 +153,9 @@ def process_transcription_job(self, job_id: str):
             update_job_progress(job_id, 80.0, "Generating hierarchical summary...")
 
             # Generate hierarchical summary for better navigation
-            hierarchical_result = await summarization_service.generate_hierarchical_summary(
+            hierarchical_result = asyncio.run(summarization_service.generate_hierarchical_summary(
                 translation or transcript
-            )
+            ))
 
             if hierarchical_result:
                 # Use the appropriate level based on user preference
@@ -168,19 +170,19 @@ def process_transcription_job(self, job_id: str):
                 hierarchical_summary = hierarchical_result
             else:
                 # Fallback to regular summarization
-                summary = await summarization_service.summarize_text(
+                summary = asyncio.run(summarization_service.summarize_text(
                     text=translation or transcript,
                     length=job.summary_length or "medium"
-                )
+                ))
 
         # Step 5: Generate outputs
         update_job_progress(job_id, 90.0, "Generating output files...")
 
-        outputs = await _generate_outputs(job_id, segments, translation, summary)
+        outputs = asyncio.run(_generate_outputs(job_id, segments, translation, summary))
 
         # Step 6: Set up QA system for future queries
         try:
-            await rag_service.setup_qa_system(transcript, job_id)
+            asyncio.run(rag_service.setup_qa_system(transcript, job_id))
             logger.info("QA system set up for job", job_id=job_id)
         except Exception as e:
             logger.warning("QA system setup failed, continuing", job_id=job_id, error=str(e))
@@ -209,7 +211,7 @@ def process_transcription_job(self, job_id: str):
         }
 
         # Mark job as completed
-        await mark_job_completed(job_id=job_id, **final_results)
+        asyncio.run(mark_job_completed(job_id=job_id, **final_results))
 
         logger.info(
             "Job processing completed",
@@ -220,7 +222,7 @@ def process_transcription_job(self, job_id: str):
 
     except Exception as e:
         logger.error("Job processing failed", job_id=job_id, error=str(e))
-        await mark_job_failed(job_id, f"Processing failed: {str(e)}")
+        asyncio.run(mark_job_failed(job_id, f"Processing failed: {str(e)}"))
 
 
 async def _preprocess_audio(job) -> str:
