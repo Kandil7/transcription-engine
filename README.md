@@ -2,6 +2,74 @@
 
 An advanced AI-powered transcription, translation, and summarization engine optimized for Arabic content (especially Egyptian dialect) with adaptive performance across different hardware profiles.
 
+## 🚀 Quick Start
+
+### Using Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd transcription-engine
+
+# Start all services
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:3000
+# API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+# MinIO Console: http://localhost:9001 (minioadmin/minioadmin)
+# Grafana: http://localhost:3001 (admin/admin)
+```
+
+## 📖 API Usage
+
+### Upload a File
+```bash
+curl -X POST "http://localhost:8000/api/v1/upload/file" \
+  -F "file=@audio.mp3" \
+  -F "language=ar" \
+  -F "enable_translation=true" \
+  -F "target_language=en"
+```
+
+### Check Job Status
+```bash
+curl "http://localhost:8000/api/v1/jobs/{job_id}"
+```
+
+### Get Job Results
+```bash
+curl "http://localhost:8000/api/v1/jobs/{job_id}/results"
+```
+
+### WebSocket Real-time Updates
+```javascript
+const ws = new WebSocket('ws://localhost:8000/api/v1/ws/jobs/{job_id}');
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Job update:', data);
+};
+```
+
+### Manual Setup
+
+#### Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
+```
+
+#### Frontend Setup
+```bash
+cd frontend
+npm install
+npm start
+```
+
 ## 🚀 Features
 
 - **High-Speed Transcription**: Process 1-hour videos in 3-7 minutes using Whisper large-v3
