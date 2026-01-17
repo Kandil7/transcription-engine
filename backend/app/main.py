@@ -12,6 +12,7 @@ from structlog import get_logger
 
 from app.api.v1.api import api_router
 from app.config import settings
+from app.core.exceptions import TranscriptionEngineError
 from app.core.logging import setup_logging
 from app.core.monitoring import init_monitoring
 from app.db.session import init_db
@@ -90,14 +91,41 @@ async def root():
     }
 
 
-# Global exception handler
+# Custom exception handler for TranscriptionEngineError
+@app.exception_handler(TranscriptionEngineError)
+async def transcription_engine_exception_handler(request: Request, exc: TranscriptionEngineError):
+    """Handler for custom TranscriptionEngineError exceptions."""
+    logger.error(
+        "TranscriptionEngineError",
+        error_code=exc.error_code,
+        status_code=exc.status_code,
+        details=exc.details,
+        path=request.url.path,
+        exc_info=exc
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.message,
+            "error_code": exc.error_code,
+            "type": exc.__class__.__name__.lower(),
+            **exc.details
+        },
+    )
+
+
+# Global exception handler for unhandled exceptions
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler."""
+    """Global exception handler for unhandled exceptions."""
     logger.error("Unhandled exception", exc_info=exc, path=request.url.path)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "type": "internal_error"},
+        content={
+            "detail": "Internal server error",
+            "error_code": "INTERNAL_ERROR",
+            "type": "internal_error"
+        },
     )
 
 

@@ -1,0 +1,90 @@
+{
+  "timestamp": 1768674345.960225,
+  "overall_status": "fail",
+  "checks": {
+    "check_project_structure": {
+      "status": "pass",
+      "message": "Project structure is complete",
+      "details": [
+        "All required directories and files present"
+      ]
+    },
+    "check_python_code_quality": {
+      "status": "error",
+      "message": "Check failed: 'charmap' codec can't decode byte 0x81 in position 660: character maps to <undefined>"
+    },
+    "check_dependencies": {
+      "status": "pass",
+      "message": "All dependency files are present and valid",
+      "details": [
+        "Python and Node.js dependencies configured correctly"
+      ]
+    },
+    "check_configuration_files": {
+      "status": "pass",
+      "message": "All configuration files are present",
+      "details": [
+        "Environment templates, Docker Compose, and Kubernetes manifests ready"
+      ]
+    },
+    "check_docker_setup": {
+      "status": "pass",
+      "message": "Docker setup is complete",
+      "details": [
+        "Dockerfiles present and properly structured"
+      ]
+    },
+    "check_kubernetes_manifests": {
+      "status": "pass",
+      "message": "Kubernetes manifests are complete",
+      "details": [
+        "All required manifests present and valid"
+      ]
+    },
+    "check_documentation_completeness": {
+      "status": "error",
+      "message": "Check failed: 'charmap' codec can't decode byte 0x8f in position 930: character maps to <undefined>"
+    },
+    "check_test_coverage": {
+      "status": "warn",
+      "message": "Test coverage issues: 1",
+      "details": [
+        "Missing conftest.py"
+      ]
+    },
+    "check_security_compliance": {
+      "status": "pass",
+      "message": "Security compliance checks passed",
+      "details": [
+        "Security files present",
+        "Error handling implemented"
+      ]
+    },
+    "analyze_code_metrics": {
+      "status": "pass",
+      "message": "Code metrics calculated: 56 Python files, 7710 lines",
+      "details": [
+        "Python files: 56",
+        "JavaScript files: 11",
+        "Documentation files: 18",
+        "Test files: 10",
+        "Total Python lines: 7710"
+      ]
+    }
+  },
+  "metrics": {
+    "python_files": 56,
+    "total_lines_python": 7710,
+    "javascript_files": 11,
+    "documentation_files": 18,
+    "test_files": 10
+  },
+  "recommendations": [
+    "Complete missing documentation files",
+    "Ensure all docs have substantial content (>1000 chars)",
+    "Add more comprehensive test coverage",
+    "Implement integration and end-to-end tests",
+    "Fix syntax errors and code quality issues",
+    "Add missing __init__.py files"
+  ]
+}

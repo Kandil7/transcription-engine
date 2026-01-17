@@ -40,23 +40,24 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # Database
-    database_url: str = Field(default="postgresql://postgres:password@localhost:5432/transcription_db")
+    database_url: str = Field(default="postgresql://postgres:password@localhost:5432/transcription_db", env="DATABASE_URL")
 
     # Redis/Celery
-    redis_url: str = Field(default="redis://localhost:6379/0")
-    celery_broker_url: str = Field(default="redis://localhost:6379/0")
-    celery_result_backend: str = Field(default="redis://localhost:6379/0")
+    redis_url: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
+    celery_broker_url: str = Field(default="redis://localhost:6379/0", env="CELERY_BROKER_URL")
+    celery_result_backend: str = Field(default="redis://localhost:6379/0", env="CELERY_RESULT_BACKEND")
 
     # Storage
-    storage_type: str = Field(default="local")  # local, s3, minio
-    upload_dir: str = "/tmp/uploads"
-    processed_dir: str = "/tmp/processed"
+    storage_type: str = Field(default="local", env="STORAGE_TYPE")  # local, s3, minio
+    upload_dir: str = Field(default="/tmp/uploads", env="UPLOAD_DIR")
+    processed_dir: str = Field(default="/tmp/processed", env="PROCESSED_DIR")
 
     # MinIO/S3 settings
-    minio_endpoint: Optional[str] = None
-    minio_access_key: Optional[str] = None
-    minio_secret_key: Optional[str] = None
-    minio_secure: bool = True
+    minio_endpoint: Optional[str] = Field(default=None, env="MINIO_ENDPOINT")
+    minio_access_key: Optional[str] = Field(default=None, env="MINIO_ACCESS_KEY")
+    minio_secret_key: Optional[str] = Field(default=None, env="MINIO_SECRET_KEY")
+    minio_secure: bool = Field(default=True, env="MINIO_SECURE")
+    minio_bucket: str = Field(default="transcription", env="MINIO_BUCKET")
     minio_bucket: str = "transcription-engine"
 
     # AWS S3 (alternative to MinIO)
@@ -70,10 +71,10 @@ class Settings(BaseSettings):
     vector_db_collection: str = "transcription_embeddings"
 
     # AI Models
-    whisper_model_size: str = "large-v3"
-    translation_model: str = "facebook/nllb-200-distilled-600M"
-    summarization_model: str = "facebook/bart-large-cnn"
-    embedding_model: str = "aubmindlab/bert-base-arabertv02"
+    whisper_model_size: str = Field(default="large-v3", env="WHISPER_MODEL_SIZE")
+    translation_model: str = Field(default="facebook/nllb-200-distilled-600M", env="TRANSLATION_MODEL")
+    summarization_model: str = Field(default="facebook/bart-large-cnn", env="SUMMARIZATION_MODEL")
+    embedding_model: str = Field(default="aubmindlab/bert-base-arabertv02", env="EMBEDDING_MODEL")
 
     # Hardware detection and profiles
     detected_profile: HardwareProfile = HardwareProfile.CPU_STRONG
@@ -82,10 +83,17 @@ class Settings(BaseSettings):
     ram_gb: float = 4.0
 
     # Processing limits
-    max_file_size_mb: int = 500  # 500MB max file size
-    max_duration_hours: int = 4  # 4 hours max duration
-    chunk_size_seconds: int = 300  # 5 minutes default chunk
-    chunk_overlap_seconds: int = 2  # 2 seconds overlap
+    max_file_size_mb: int = Field(default=500, env="MAX_FILE_SIZE_MB")  # 500MB max file size
+    max_duration_hours: int = Field(default=4, env="MAX_DURATION_HOURS")  # 4 hours max duration
+    chunk_size_seconds: int = Field(default=300, env="CHUNK_SIZE_SECONDS")  # 5 minutes default chunk
+    chunk_overlap_seconds: int = Field(default=2, env="CHUNK_OVERLAP_SECONDS")  # 2 seconds overlap
+
+    # Monitoring & Logging
+    enable_prometheus: bool = Field(default=True, env="ENABLE_PROMETHEUS")
+    prometheus_port: int = Field(default=9090, env="PROMETHEUS_PORT")
+    log_level: str = Field(default="INFO", env="LOG_LEVEL")
+    log_format: str = Field(default="json", env="LOG_FORMAT")
+    sentry_dsn: Optional[str] = Field(default=None, env="SENTRY_DSN")
 
     # Performance tuning per profile
     profile_configs: dict = Field(default_factory=lambda: {
@@ -136,9 +144,9 @@ class Settings(BaseSettings):
     enable_streaming: bool = False
     enable_rag: bool = True
     enable_translation: bool = True
-    enable_summarization: bool = True
-    enable_tts: bool = False
-    enable_voice_analytics: bool = False
+    enable_summarization: bool = Field(default=True, env="ENABLE_SUMMARIZATION")
+    enable_tts: bool = Field(default=False, env="ENABLE_TTS")
+    enable_voice_analytics: bool = Field(default=False, env="ENABLE_VOICE_ANALYTICS")
 
     class Config:
         env_file = ".env"

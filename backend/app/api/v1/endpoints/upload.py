@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from structlog import get_logger
 
 from app.config import settings
+from app.core.exceptions import FileProcessingError, ValidationError
 from app.core.storage import upload_file
 from app.models.job import JobCreate, JobStatus
 from app.services.job_service import create_job
@@ -134,11 +135,14 @@ async def upload_audio_file(
 
     except HTTPException:
         raise
+    except (FileProcessingError, ValidationError):
+        raise
     except Exception as e:
         logger.error("Upload failed", error=str(e), filename=file.filename)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Upload failed due to internal error"
+        raise FileProcessingError(
+            message="Upload failed due to internal error",
+            file_path=file.filename,
+            details={"error": str(e)}
         )
 
 

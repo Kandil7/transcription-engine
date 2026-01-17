@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from structlog import get_logger
 
+from app.core.exceptions import JobNotFoundError
 from app.models.job import JobStatus
 from app.services.job_service import get_job, get_job_results, get_user_jobs
 
@@ -57,10 +58,7 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
     try:
         job = await get_job(job_id)
         if not job:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job not found"
-            )
+            raise JobNotFoundError(job_id)
 
         return JobStatusResponse(
             id=job.id,
@@ -99,10 +97,7 @@ async def get_job_results_endpoint(job_id: str) -> JobResultsResponse:
     try:
         job = await get_job(job_id)
         if not job:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job not found"
-            )
+            raise JobNotFoundError(job_id)
 
         if job.status != JobStatus.COMPLETED:
             raise HTTPException(
