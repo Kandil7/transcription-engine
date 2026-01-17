@@ -207,34 +207,34 @@ The **SoutiAI Transcription Engine** is a comprehensive, enterprise-grade artifi
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             Client Layer                                    │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │   Web Frontend  │  │   Mobile Apps   │  │    REST API     │             │
-│  │   (React)       │  │   (React Native)│  │   (Postman)     │             │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐              │
+│  │   Web Frontend  │  │   Mobile Apps   │  │    REST API     │              │
+│  │   (React)       │  │   (React Native)│  │   (Postman)     │              │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │ HTTP/WebSocket
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          API Gateway Layer                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
-│  │    Traefik      │  │   Rate Limit    │  │ Authentication  │             │
-│  │  Load Balancer  │  │   & Throttle    │  │   (JWT/OAuth)   │             │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘             │
+│                          API Gateway Layer                                  │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐              │
+│  │    Traefik      │  │   Rate Limit    │  │ Authentication  │              │
+│  │  Load Balancer  │  │   & Throttle    │  │   (JWT/OAuth)   │              │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Application Layer                                  │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
+│                         Application Layer                                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐              │
 │  │   FastAPI App   │  │   WebSocket     │  │   Background     │             │
 │  │   (Sync APIs)   │  │   Server        │  │   Workers        │             │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘             │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘              │
 └─────────────────────┬───────────────────────────────────────────────────────┘
                       │
            ┌──────────┴──────────┐
            ▼                     ▼
 ┌─────────────────────┐ ┌─────────────────────┐
-│   🤖 AI Services    │ │  ⚡ Processing      │
+│   🤖 AI Services    │ │  ⚡ Processing     │
 │ • Whisper Models    │ │ • Celery Workers    │
 │ • NLLB Translation  │ │ • Background Tasks  │
 │ • Voice Analytics   │ │ • Queue Management  │
@@ -244,7 +244,7 @@ The **SoutiAI Transcription Engine** is a comprehensive, enterprise-grade artifi
            ┌──────────┴──────────┐
            ▼                     ▼
 ┌─────────────────────┐ ┌─────────────────────┐
-│   🗄️ Data Layer     │ │ 🏭 Infrastructure    │
+│   🗄️ Data Layer     │ │ 🏭 Infrastructure  │
 │ • PostgreSQL        │ │ • Docker/K8s        │
 │ • ChromaDB Vectors  │ │ • Prometheus        │
 │ • Redis Cache       │ │ • Grafana           │
