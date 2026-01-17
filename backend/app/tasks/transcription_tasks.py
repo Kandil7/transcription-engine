@@ -12,6 +12,7 @@ from app.services.translation_service import translation_service
 from app.services.summarization_service import summarization_service
 from app.services.rag_service import rag_service
 from app.services.voice_analytics_service import voice_analytics_service
+from app.services.tts_service import tts_service
 from app.tasks.celery_app import celery_app
 from app.utils.audio import extract_audio_from_video, split_audio_into_chunks, validate_audio_file
 from structlog import get_logger
@@ -56,37 +57,45 @@ def process_transcription_job(self, job_id: str):
         # Step 2: Transcription with dialect adaptation
         dialect_info = None
 
-        # Try dialect-adaptive transcription first (for Arabic content)
-        if job.language in ["ar", "arabic"] and hasattr(job, 'text_sample') and job.text_sample:
-            try:
-                logger.info("Attempting dialect-adaptive transcription", job_id=job_id)
-                result = asyncio.run(transcription_service.transcribe_with_dialect_adaptation(
-                    job_id=job_id,
-                    audio_path=audio_path,
-                    text_sample=job.text_sample,
-                    language=job.language,
-                ))
-                transcript, segments, trans_stats, dialect_info = result
-                logger.info("Dialect-adaptive transcription successful",
-                          job_id=job_id,
-                          dialect=dialect_info.get('primary_dialect') if dialect_info else None)
+        # Check if we already have pre-processed chunk results
+        if hasattr(job, 'combined_transcript') and hasattr(job, 'combined_segments'):
+            # Use pre-processed results from parallel chunking
+            transcript = job.combined_transcript
+            segments = job.combined_segments
+            trans_stats = None  # We'll calculate basic stats
+            logger.info("Using pre-processed chunk results", job_id=job_id, segments=len(segments))
+        else:
+            # Try dialect-adaptive transcription first (for Arabic content)
+            if job.language in ["ar", "arabic"] and hasattr(job, 'text_sample') and job.text_sample:
+                try:
+                    logger.info("Attempting dialect-adaptive transcription", job_id=job_id)
+                    result = asyncio.run(transcription_service.transcribe_with_dialect_adaptation(
+                        job_id=job_id,
+                        audio_path=audio_path,
+                        text_sample=job.text_sample,
+                        language=job.language,
+                    ))
+                    transcript, segments, trans_stats, dialect_info = result
+                    logger.info("Dialect-adaptive transcription successful",
+                              job_id=job_id,
+                              dialect=dialect_info.get('primary_dialect') if dialect_info else None)
 
-            except Exception as e:
-                logger.warning("Dialect-adaptive transcription failed, falling back to standard",
-                             job_id=job_id, error=str(e))
-                # Fall back to standard transcription
+                except Exception as e:
+                    logger.warning("Dialect-adaptive transcription failed, falling back to standard",
+                                 job_id=job_id, error=str(e))
+                    # Fall back to standard transcription
+                    transcript, segments, trans_stats = asyncio.run(transcription_service.transcribe_audio(
+                        job_id=job_id,
+                        audio_path=audio_path,
+                        language=job.language,
+                    ))
+            else:
+                # Standard transcription for non-Arabic or when no text sample available
                 transcript, segments, trans_stats = asyncio.run(transcription_service.transcribe_audio(
                     job_id=job_id,
                     audio_path=audio_path,
                     language=job.language,
                 ))
-        else:
-            # Standard transcription for non-Arabic or when no text sample available
-            transcript, segments, trans_stats = asyncio.run(transcription_service.transcribe_audio(
-                job_id=job_id,
-                audio_path=audio_path,
-                language=job.language,
-            ))
 
         update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers...")
 
@@ -260,14 +269,92 @@ async def _preprocess_audio(job) -> str:
 
             logger.info("Audio split into chunks", job_id=job.id, chunks=len(chunks))
 
-            # For now, return the main audio file
-            # TODO: Implement parallel chunk processing
+            # Process chunks in parallel and combine results
+            combined_transcript, combined_segments = await _process_chunks_parallel(
+                chunks, job.language, chunk_duration=settings.chunk_size_seconds
+            )
+
+            # Store combined results for later use in transcription
+            job.combined_transcript = combined_transcript
+            job.combined_segments = combined_segments
+
+            logger.info("Parallel chunk processing completed", job_id=job.id, total_segments=len(combined_segments))
             return audio_path
         else:
             return audio_path
 
     except Exception as e:
         logger.error("Audio preprocessing failed", job_id=job.id, error=str(e))
+        raise
+
+
+async def _process_chunks_parallel(chunks: List[str], language: str, chunk_duration: int) -> Tuple[str, List[Dict]]:
+    """Process audio chunks in parallel and combine results."""
+    from app.services.transcription_service import transcription_service
+
+    try:
+        # Create tasks for parallel processing
+        chunk_tasks = []
+        for i, chunk_path in enumerate(chunks):
+            chunk_offset = i * chunk_duration  # Calculate offset for timestamp adjustment
+            task = _transcribe_single_chunk(chunk_path, language, chunk_offset)
+            chunk_tasks.append(task)
+
+        # Process all chunks in parallel
+        logger.info("Starting parallel chunk transcription", chunk_count=len(chunks))
+        chunk_results = await asyncio.gather(*chunk_tasks, return_exceptions=True)
+
+        # Combine results
+        combined_transcript_parts = []
+        combined_segments = []
+
+        current_time_offset = 0.0
+
+        for i, result in enumerate(chunk_results):
+            if isinstance(result, Exception):
+                logger.error("Chunk transcription failed", chunk_index=i, error=str(result))
+                continue
+
+            chunk_transcript, chunk_segments = result
+
+            # Adjust timestamps for this chunk
+            adjusted_segments = []
+            for segment in chunk_segments:
+                adjusted_segment = segment.copy()
+                adjusted_segment["start"] += current_time_offset
+                adjusted_segment["end"] += current_time_offset
+                adjusted_segments.append(adjusted_segment)
+
+            # Add to combined results
+            combined_transcript_parts.append(chunk_transcript)
+            combined_segments.extend(adjusted_segments)
+
+            # Update time offset for next chunk (accounting for overlap)
+            current_time_offset += chunk_duration
+
+        combined_transcript = " ".join(combined_transcript_parts)
+
+        logger.info("Chunk processing completed",
+                   total_chunks=len(chunks),
+                   successful_chunks=len([r for r in chunk_results if not isinstance(r, Exception)]),
+                   total_segments=len(combined_segments))
+
+        return combined_transcript, combined_segments
+
+    except Exception as e:
+        logger.error("Parallel chunk processing failed", error=str(e))
+        raise
+
+
+async def _transcribe_single_chunk(chunk_path: str, language: str, time_offset: float) -> Tuple[str, List[Dict]]:
+    """Transcribe a single chunk (helper for parallel processing)."""
+    from app.services.transcription_service import transcription_service
+
+    try:
+        transcript, segments = await transcription_service.transcribe_chunk(chunk_path, language)
+        return transcript, segments
+    except Exception as e:
+        logger.error("Single chunk transcription failed", chunk_path=chunk_path, error=str(e))
         raise
 
 
@@ -286,10 +373,16 @@ async def _generate_outputs(job_id: str, segments: List[Dict], translation: str 
         if vtt_content:
             outputs["subtitles_vtt"] = vtt_content
 
-        # TODO: Generate TTS audio summary if enabled
-        # if settings.enable_tts and summary:
-        #     audio_summary_url = await tts_service.generate_speech(summary)
-        #     outputs["audio_summary_url"] = audio_summary_url
+        # Generate TTS audio summary if enabled
+        if settings.enable_tts and summary:
+            try:
+                audio_summary_path = await tts_service.generate_speech(summary)
+                # Convert to URL or store reference
+                # For now, we'll store the path - in production you'd upload to cloud storage
+                outputs["audio_summary_path"] = audio_summary_path
+                logger.info("TTS audio summary generated", job_id=job_id, summary_length=len(summary))
+            except Exception as e:
+                logger.warning("TTS audio summary generation failed", job_id=job_id, error=str(e))
 
         return outputs
 

@@ -148,6 +148,10 @@ class Settings(BaseSettings):
     enable_tts: bool = Field(default=False, env="ENABLE_TTS")
     enable_voice_analytics: bool = Field(default=False, env="ENABLE_VOICE_ANALYTICS")
 
+    # TTS settings
+    tts_engine: str = Field(default="edge-tts", env="TTS_ENGINE")  # "edge-tts" or "coqui"
+    tts_voice: str = Field(default="ar-EG-SalmaNeural", env="TTS_VOICE")  # Arabic voice for edge-tts
+
     class Config:
         env_file = ".env"
         case_sensitive = False
