@@ -25,6 +25,7 @@ class Job(Base):
     enable_voice_analytics = Column(Boolean, default=False)
     target_language = Column(String(10), nullable=True)
     summary_length = Column(String(20), nullable=True)
+    text_sample = Column(Text, nullable=True)
 
     # Results
     transcript = Column(Text, nullable=True)
