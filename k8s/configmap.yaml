@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: transcription-config
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+data:
+  # Application settings
+  APP_NAME: "TranscriptionEngine"
+  APP_VERSION: "1.0.0"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+
+  # Server settings
+  HOST: "0.0.0.0"
+  PORT: "8000"
+  WORKERS: "4"
+
+  # CORS settings
+  CORS_ORIGINS: '["https://yourdomain.com"]'
+  CORS_ALLOW_CREDENTIALS: "true"
+  CORS_ALLOW_METHODS: '["GET", "POST", "PUT", "DELETE", "OPTIONS"]'
+  CORS_ALLOW_HEADERS: '["*"]'
+
+  # AI Model settings
+  DETECTED_PROFILE: "auto"
+  WHISPER_MODEL_SIZE: "large-v3"
+  WHISPER_COMPUTE_TYPE: "float16"
+  WHISPER_BEAM_SIZE: "5"
+  WHISPER_VAD_FILTER: "true"
+  WHISPER_VAD_MIN_SILENCE: "500"
+
+  # Egyptian Dialect settings
+  EGYPTIAN_DIALECT_MODELS_PATH: "/app/models/egyptian"
+  DIALECT_DETECTOR_PATH: "/app/models/dialect_detector"
+  ENABLE_DIALECT_DETECTION: "true"
+
+  # Translation settings
+  TRANSLATION_MODEL: "nllb-200-distilled-600M"
+  TRANSLATION_CACHE_SIZE: "10000"
+  TRANSLATION_MAX_LENGTH: "512"
+
+  # Summarization settings
+  SUMMARIZATION_MODEL: "bart-large-cnn"
+  SUMMARIZATION_MAX_LENGTH: "150"
+  SUMMARIZATION_MIN_LENGTH: "50"
+
+  # Voice Analytics settings
+  VOICE_ANALYTICS_ENABLED: "true"
+  DIARIZATION_MODEL: "pyannote/speaker-diarization"
+  EMOTION_MODEL: "wav2vec2-large-robust-12-ft-emotion-msp-dim"
+
+  # Celery settings
+  CELERY_TASK_SERIALIZER: "json"
+  CELERY_ACCEPT_CONTENT: '["json"]'
+  CELERY_RESULT_SERIALIZER: "json"
+  CELERY_TIMEZONE: "UTC"
+
+  # Worker settings
+  CELERY_WORKER_CONCURRENCY: "4"
+  CELERY_WORKER_PREFETCH_MULTIPLIER: "4"
+  CELERY_WORKER_MAX_TASKS_PER_CHILD: "1000"
+
+  # Monitoring settings
+  PROMETHEUS_ENABLED: "true"
+  PROMETHEUS_PORT: "9090"
+  METRICS_PATH: "/metrics"
+
+  # Logging settings
+  LOG_FORMAT: "json"
+  LOG_MAX_SIZE: "100MB"
+  LOG_BACKUP_COUNT: "5"
+
+  # Health check settings
+  HEALTH_CHECK_ENABLED: "true"
+  HEALTH_CHECK_DATABASE: "true"
+  HEALTH_CHECK_REDIS: "true"
+  HEALTH_CHECK_MODELS: "true"
+
+  # Feature flags
+  ENABLE_RAG: "true"
+  ENABLE_VOICE_ANALYTICS: "true"
+  ENABLE_STREAMING: "true"
+  ENABLE_TRANSLATION: "true"
+  ENABLE_SUMMARIZATION: "true"
+  ENABLE_DIALECT_DETECTION: "true"

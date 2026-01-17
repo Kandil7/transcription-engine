@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+    component: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transcription-engine
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: transcription-engine
+        component: cache
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - --appendonly yes
+        - --maxmemory 512mb
+        - --maxmemory-policy allkeys-lru
+        - --tcp-keepalive 300
+        - --timeout 300
+        - --tcp-backlog 128
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+    component: cache
+spec:
+  selector:
+    app: transcription-engine
+    component: cache
+  ports:
+  - port: 6379
+    targetPort: 6379
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+    component: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard

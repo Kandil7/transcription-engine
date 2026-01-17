@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: transcription-service-account
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: transcription-role
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: transcription-role-binding
+  namespace: transcription-engine
+  labels:
+    app: transcription-engine
+subjects:
+- kind: ServiceAccount
+  name: transcription-service-account
+  namespace: transcription-engine
+roleRef:
+  kind: Role
+  name: transcription-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: transcription-cluster-role
+  labels:
+    app: transcription-engine
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "persistentvolumes", "persistentvolumeclaims"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: transcription-cluster-role-binding
+  labels:
+    app: transcription-engine
+subjects:
+- kind: ServiceAccount
+  name: transcription-service-account
+  namespace: transcription-engine
+roleRef:
+  kind: ClusterRole
+  name: transcription-cluster-role
+  apiGroup: rbac.authorization.k8s.io

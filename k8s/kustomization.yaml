@@ -1,0 +1,62 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: transcription-engine
+
+# Namespace
+namespace: transcription-engine
+
+# Common labels
+commonLabels:
+  app: transcription-engine
+  managed-by: kustomize
+
+# Resources to include
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - configmap.yaml
+  - secret.yaml
+  - postgres.yaml
+  - redis.yaml
+  - chroma.yaml
+  - minio.yaml
+  - api.yaml
+  - worker.yaml
+  - frontend.yaml
+  - hpa.yaml
+
+# Image transformations
+images:
+  - name: ghcr.io/kandil7/transcription-engine
+    newTag: latest
+  - name: ghcr.io/kandil7/transcription-frontend
+    newTag: latest
+
+# ConfigMap generators (for environment-specific configs)
+configMapGenerator:
+  - name: transcription-config
+    envs:
+      - config.env
+
+# Secret generators (use external secrets or sealed secrets in production)
+# secretGenerator:
+#   - name: transcription-secrets
+#     envs:
+#       - secrets.env
+
+# Patches for different environments
+patchesStrategicMerge: []
+
+# JSON patches for fine-grained modifications
+patches: []
+
+# Replicas for different environments
+replicas:
+  - name: transcription-api
+    count: 3
+  - name: transcription-worker
+    count: 2
+  - name: transcription-frontend
+    count: 2
