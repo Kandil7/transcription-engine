@@ -35,8 +35,10 @@ class JobCreate(BaseModel):
     status: JobStatus = Field(default=JobStatus.PENDING, description="Current job status")
     enable_translation: bool = Field(True, description="Whether to translate the content")
     enable_summary: bool = Field(True, description="Whether to generate a summary")
+    enable_voice_analytics: bool = Field(False, description="Whether to perform voice analytics")
     target_language: Optional[str] = Field("en", description="Target language for translation")
     summary_length: Optional[str] = Field("medium", description="Summary length (short/medium/long)")
+    text_sample: Optional[str] = Field(None, description="Sample text for dialect detection (Arabic only)")
 
 
 class JobUpdate(BaseModel):
@@ -69,11 +71,14 @@ class Job(BaseModel):
     enable_summary: bool
     target_language: Optional[str] = None
     summary_length: Optional[str] = None
+    text_sample: Optional[str] = None
 
     # Results
     transcript: Optional[str] = None
     translation: Optional[str] = None
     summary: Optional[str] = None
+    hierarchical_summary: Optional[dict] = None
+    voice_analytics: Optional[dict] = None
     subtitles_srt: Optional[str] = None
     subtitles_vtt: Optional[str] = None
     audio_summary_url: Optional[str] = None

@@ -2,6 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
+import StreamIcon from '@mui/icons-material/Stream';
 
 function Header() {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ function Header() {
           </Button>
           <Button color="inherit" onClick={() => navigate('/upload')}>
             Upload
+          </Button>
+          <Button color="inherit" onClick={() => navigate('/streaming')} startIcon={<StreamIcon />}>
+            Live Stream
           </Button>
         </Box>
       </Toolbar>

@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import jobs, qa, upload, websocket
+from app.api.v1.endpoints import jobs, qa, streaming, upload, voice_analytics, websocket
 
 api_router = APIRouter()
 
@@ -10,4 +10,6 @@ api_router = APIRouter()
 api_router.include_router(upload.router, prefix="/upload", tags=["upload"])
 api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 api_router.include_router(qa.router, prefix="/qa", tags=["qa"])
+api_router.include_router(streaming.router, prefix="/stream", tags=["streaming"])
+api_router.include_router(voice_analytics.router, prefix="/voice", tags=["voice_analytics"])
 api_router.include_router(websocket.router, prefix="/ws", tags=["websocket"])

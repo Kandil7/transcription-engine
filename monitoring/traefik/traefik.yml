@@ -1,0 +1,166 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+api:
+  insecure: true
+  dashboard: true
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+
+providers:
+  docker:
+    exposedByDefault: false
+    watch: true
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "admin@transcription-engine.com"
+      storage: "/etc/traefik/acme/acme.json"
+      httpChallenge:
+        entryPoint: web
+
+http:
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowOriginList: ["*"]
+        accessControlAllowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        accessControlAllowHeaders: ["*"]
+        accessControlMaxAge: 86400
+
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+
+    security-headers:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: "DENY"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Permissions-Policy: "geolocation=(), microphone=(), camera=()"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Port: "443"
+
+    compression:
+      compress: {}
+
+  routers:
+    api:
+      rule: "Host(`api.transcription-engine.com`)"
+      service: api
+      entryPoints:
+        - websecure
+      middlewares:
+        - cors
+        - rate-limit
+        - security-headers
+        - compression
+      tls:
+        certResolver: letsencrypt
+
+    frontend:
+      rule: "Host(`transcription-engine.com`)"
+      service: frontend
+      entryPoints:
+        - websecure
+      middlewares:
+        - cors
+        - security-headers
+        - compression
+      tls:
+        certResolver: letsencrypt
+
+    prometheus:
+      rule: "Host(`prometheus.transcription-engine.com`)"
+      service: prometheus
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      tls:
+        certResolver: letsencrypt
+
+    grafana:
+      rule: "Host(`grafana.transcription-engine.com`)"
+      service: grafana
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      tls:
+        certResolver: letsencrypt
+
+    alertmanager:
+      rule: "Host(`alerts.transcription-engine.com`)"
+      service: alertmanager
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      tls:
+        certResolver: letsencrypt
+
+    traefik-dashboard:
+      rule: "Host(`traefik.transcription-engine.com`)"
+      service: api@internal
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://api:8000"
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"
+
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://prometheus:9090"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
+    alertmanager:
+      loadBalancer:
+        servers:
+          - url: "http://alertmanager:9093"

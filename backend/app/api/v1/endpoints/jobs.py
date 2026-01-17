@@ -27,6 +27,7 @@ class JobStatusResponse(BaseModel):
     language: str
     enable_translation: bool
     enable_summary: bool
+    enable_voice_analytics: bool
     target_language: Optional[str] = None
     summary_length: Optional[str] = None
 
@@ -38,6 +39,8 @@ class JobResultsResponse(BaseModel):
     transcript: Optional[str] = None
     translation: Optional[str] = None
     summary: Optional[str] = None
+    hierarchical_summary: Optional[dict] = None
+    voice_analytics: Optional[dict] = None
     subtitles_srt: Optional[str] = None
     subtitles_vtt: Optional[str] = None
     audio_summary_url: Optional[str] = None
@@ -71,6 +74,7 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
             language=job.language,
             enable_translation=job.enable_translation,
             enable_summary=job.enable_summary,
+            enable_voice_analytics=job.enable_voice_analytics,
             target_language=job.target_language,
             summary_length=job.summary_length,
         )
@@ -113,6 +117,8 @@ async def get_job_results_endpoint(job_id: str) -> JobResultsResponse:
             transcript=results.get("transcript"),
             translation=results.get("translation"),
             summary=results.get("summary"),
+            hierarchical_summary=results.get("hierarchical_summary"),
+            voice_analytics=results.get("voice_analytics"),
             subtitles_srt=results.get("subtitles_srt"),
             subtitles_vtt=results.get("subtitles_vtt"),
             audio_summary_url=results.get("audio_summary_url"),

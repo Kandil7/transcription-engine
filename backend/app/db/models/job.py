@@ -22,13 +22,17 @@ class Job(Base):
     # Processing options
     enable_translation = Column(Boolean, default=True)
     enable_summary = Column(Boolean, default=True)
+    enable_voice_analytics = Column(Boolean, default=False)
     target_language = Column(String(10), nullable=True)
     summary_length = Column(String(20), nullable=True)
+    text_sample = Column(Text, nullable=True)
 
     # Results
     transcript = Column(Text, nullable=True)
     translation = Column(Text, nullable=True)
     summary = Column(Text, nullable=True)
+    hierarchical_summary = Column(JSON, nullable=True)
+    voice_analytics = Column(JSON, nullable=True)
     subtitles_srt = Column(Text, nullable=True)
     subtitles_vtt = Column(Text, nullable=True)
     audio_summary_url = Column(Text, nullable=True)

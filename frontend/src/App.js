@@ -7,6 +7,7 @@ import { SnackbarProvider } from 'notistack';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
+import Streaming from './pages/Streaming';
 import JobDetails from './pages/JobDetails';
 
 const theme = createTheme({
@@ -31,6 +32,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/streaming" element={<Streaming />} />
             <Route path="/jobs/:jobId" element={<JobDetails />} />
           </Routes>
         </Router>

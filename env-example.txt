@@ -1,0 +1,225 @@
+# =================================================================
+# SoutiAI Transcription Engine - Environment Configuration Template
+# =================================================================
+# Copy this file to .env and update values for your environment
+# NEVER commit .env files to version control
+
+# =================================================================
+# APPLICATION SETTINGS
+# =================================================================
+APP_NAME=TranscriptionEngine
+APP_VERSION=1.0.0
+DEBUG=true
+LOG_LEVEL=DEBUG
+ENVIRONMENT=development
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+WORKERS=4
+RELOAD=true
+
+# CORS Settings
+CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+CORS_ALLOW_HEADERS=["*"]
+
+# =================================================================
+# DATABASE CONFIGURATION
+# =================================================================
+# PostgreSQL Database
+DATABASE_URL=postgresql://transcription:password@localhost:5432/transcription_db
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=30
+DB_POOL_TIMEOUT=30
+DB_ECHO=false
+
+# Redis Cache & Queue
+REDIS_URL=redis://localhost:6379/0
+REDIS_POOL_SIZE=20
+REDIS_DB_CACHE=1
+REDIS_DB_QUEUE=2
+
+# ChromaDB Vector Database
+CHROMA_HOST=localhost
+CHROMA_PORT=8000
+CHROMA_PERSIST_DIR=./data/chroma
+
+# =================================================================
+# STORAGE CONFIGURATION
+# =================================================================
+# Storage Backend (minio, s3, local)
+STORAGE_TYPE=minio
+
+# MinIO Configuration
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_SECURE=false
+MINIO_BUCKET_NAME=transcription-files
+
+# AWS S3 Configuration (alternative to MinIO)
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_DEFAULT_REGION=us-east-1
+S3_BUCKET_NAME=transcription-files
+
+# Local Storage (for development)
+LOCAL_STORAGE_PATH=./data/files
+
+# =================================================================
+# AI MODEL CONFIGURATION
+# =================================================================
+# Hardware Profile Detection
+DETECTED_PROFILE=auto
+
+# Whisper Model Settings
+WHISPER_MODEL_SIZE=large-v3
+WHISPER_COMPUTE_TYPE=float16
+WHISPER_BEAM_SIZE=5
+WHISPER_VAD_FILTER=true
+WHISPER_VAD_MIN_SILENCE=500
+
+# Egyptian Dialect Models
+EGYPTIAN_DIALECT_MODELS_PATH=./models/egyptian
+DIALECT_DETECTOR_PATH=./models/dialect_detector
+ENABLE_DIALECT_DETECTION=true
+
+# Translation Models
+TRANSLATION_MODEL=nllb-200-distilled-600M
+TRANSLATION_CACHE_SIZE=10000
+TRANSLATION_MAX_LENGTH=512
+
+# Summarization Models
+SUMMARIZATION_MODEL=bart-large-cnn
+SUMMARIZATION_MAX_LENGTH=150
+SUMMARIZATION_MIN_LENGTH=50
+
+# Voice Analytics Models
+VOICE_ANALYTICS_ENABLED=true
+DIARIZATION_MODEL=pyannote/speaker-diarization
+EMOTION_MODEL=wav2vec2-large-robust-12-ft-emotion-msp-dim
+
+# =================================================================
+# BACKGROUND PROCESSING
+# =================================================================
+# Celery Configuration
+CELERY_BROKER_URL=redis://localhost:6379/2
+CELERY_RESULT_BACKEND=redis://localhost:6379/3
+CELERY_TASK_SERIALIZER=json
+CELERY_ACCEPT_CONTENT=['json']
+CELERY_RESULT_SERIALIZER=json
+CELERY_TIMEZONE=UTC
+
+# Worker Configuration
+CELERY_WORKER_CONCURRENCY=4
+CELERY_WORKER_PREFETCH_MULTIPLIER=4
+CELERY_WORKER_MAX_TASKS_PER_CHILD=1000
+
+# Queue Names
+CELERY_DEFAULT_QUEUE=transcription
+CELERY_HIGH_PRIORITY_QUEUE=urgent
+
+# =================================================================
+# SECURITY CONFIGURATION
+# =================================================================
+# JWT Authentication
+JWT_SECRET_KEY=change-this-in-production-to-a-secure-random-key-32-chars-minimum
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# API Keys (for service authentication)
+API_KEY_HEADER=X-API-Key
+API_KEYS=dev-api-key-1,dev-api-key-2
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS=1000
+RATE_LIMIT_WINDOW=60
+RATE_LIMIT_BURST=200
+
+# Encryption
+ENCRYPTION_KEY=change-this-to-a-32-byte-encryption-key-for-production
+ENCRYPTION_ALGORITHM=AES256
+
+# =================================================================
+# MONITORING & LOGGING
+# =================================================================
+# Prometheus Metrics
+PROMETHEUS_ENABLED=true
+PROMETHEUS_PORT=9090
+METRICS_PATH=/metrics
+
+# Logging Configuration
+LOG_FORMAT=json
+LOG_FILE=./logs/transcription.log
+LOG_MAX_SIZE=100MB
+LOG_BACKUP_COUNT=5
+
+# Sentry Error Tracking
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=development
+
+# Health Check Settings
+HEALTH_CHECK_ENABLED=true
+HEALTH_CHECK_DATABASE=true
+HEALTH_CHECK_REDIS=true
+HEALTH_CHECK_MODELS=true
+
+# =================================================================
+# FEATURE FLAGS
+# =================================================================
+# Enable/Disable Features
+ENABLE_RAG=true
+ENABLE_VOICE_ANALYTICS=true
+ENABLE_STREAMING=true
+ENABLE_TRANSLATION=true
+ENABLE_SUMMARIZATION=true
+ENABLE_DIALECT_DETECTION=true
+
+# Experimental Features
+ENABLE_EXPERIMENTAL_MODELS=false
+ENABLE_MODEL_AUTO_UPDATE=false
+ENABLE_ADVANCED_ANALYTICS=false
+
+# =================================================================
+# EXTERNAL API KEYS
+# =================================================================
+# OpenAI API (for fallback transcription)
+OPENAI_API_KEY=your-openai-api-key
+
+# HuggingFace API (for model downloads)
+HUGGINGFACE_API_KEY=your-huggingface-api-key
+
+# =================================================================
+# DEVELOPMENT SETTINGS
+# =================================================================
+# Development Overrides
+PYTHONPATH=/app
+PYTHONDONTWRITEBYTECODE=1
+
+# Test Database
+TEST_DATABASE_URL=postgresql://test:test@localhost:5433/test_db
+
+# Frontend Development
+REACT_APP_API_URL=http://localhost:8000
+REACT_APP_WS_URL=ws://localhost:8000
+
+# =================================================================
+# PRODUCTION OVERRIDES
+# =================================================================
+# These should be set in production environment
+# PRODUCTION_DATABASE_URL=postgresql://prod-user:prod-pass@prod-host:5432/prod_db
+# PRODUCTION_REDIS_URL=redis://prod-redis:6379
+# PRODUCTION_JWT_SECRET_KEY=your-production-jwt-secret
+# PRODUCTION_ENCRYPTION_KEY=your-production-encryption-key
+
+# =================================================================
+# NOTES
+# =================================================================
+# 1. Generate secure keys using: openssl rand -hex 32
+# 2. Use different values for each environment (dev/staging/prod)
+# 3. Store production secrets in secure vaults (AWS Secrets Manager, etc.)
+# 4. Never commit actual .env files to version control
+# 5. Use docker-compose.override.yml for environment-specific overrides

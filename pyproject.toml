@@ -1,0 +1,284 @@
+# =================================================================
+# Python Project Configuration for SoutiAI Transcription Engine
+# =================================================================
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "souti-transcription-engine"
+version = "1.0.0"
+description = "Enterprise-grade AI transcription, translation, and analysis engine optimized for Arabic content"
+authors = [
+    {name = "SoutiAI Team", email = "team@souti.ai"}
+]
+license = {text = "Proprietary"}
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+    # Core dependencies are in requirements.txt
+    # This file contains project metadata and tool configurations
+]
+
+[project.optional-dependencies]
+dev = [
+    # Development dependencies are in requirements-dev.txt
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.1.0",
+    "mkdocstrings>=0.22.0",
+]
+test = [
+    # Testing dependencies are in requirements-dev.txt
+]
+
+[project.urls]
+Homepage = "https://souti.ai"
+Documentation = "https://docs.souti.ai"
+Repository = "https://github.com/Kandil7/transcription-engine"
+Issues = "https://github.com/Kandil7/transcription-engine/issues"
+Changelog = "https://github.com/Kandil7/transcription-engine/blob/main/CHANGELOG.md"
+
+# =================================================================
+# Tool Configurations
+# =================================================================
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | docs
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+known_first_party = ["app", "tests"]
+skip = ["__init__.py"]
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".venv",
+    ".tox",
+    "docs",
+    "migrations",
+]
+per-file-ignores = [
+    "__init__.py:F401",
+    "tests/*:S101",  # Allow assert statements in tests
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs", "scripts"]
+skips = ["B101", "B601"]  # Skip assert checks and shell usage warnings
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+ignore_missing_imports = true
+no_strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "faster_whisper.*",
+    "chromadb.*",
+    "librosa.*",
+    "pyannote.*",
+    "transformers.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=80",
+    "-v"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
+    "asyncio: marks tests as async",
+    "performance: marks tests as performance benchmarks",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/conftest.py",
+    "*/migrations/*",
+    "*/scripts/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# =================================================================
+# Development Tool Configurations
+# =================================================================
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "1.0.0"
+tag_format = "v$version"
+
+[tool.pre-commit-hooks]
+files = "^(app|tests|scripts)/.*\\.py$"
+exclude = "^docs/.*$"
+
+# =================================================================
+# Documentation Configuration
+# =================================================================
+
+[tool.mkdocs]
+site_name = "SoutiAI Transcription Engine"
+site_description = "Enterprise-grade AI transcription, translation, and analysis engine"
+site_author = "SoutiAI Team"
+site_url = "https://docs.souti.ai"
+
+theme:
+  name = "material"
+  palette:
+    primary: "blue"
+    accent: "blue"
+  font:
+    text: "Roboto"
+    code: "Roboto Mono"
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_root_heading: true
+            show_source: true
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - codehilite:
+      guess_lang: false
+  - admonition
+  - footnotes
+  - meta
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# =================================================================
+# Additional Tool Configurations
+# =================================================================
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*" = ["B011", "S101"]
