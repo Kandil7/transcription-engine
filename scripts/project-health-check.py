@@ -28,7 +28,7 @@ class ProjectHealthChecker:
 
     def run_all_checks(self) -> Dict[str, Any]:
         """Run all health checks."""
-        print("🔍 Running comprehensive project health check...")
+        print("Running comprehensive project health check...")
         print("=" * 60)
 
         checks = [
@@ -47,20 +47,20 @@ class ProjectHealthChecker:
         for check in checks:
             try:
                 check_name = check.__name__.replace('check_', '').replace('_', ' ').title()
-                print(f"\n📋 Checking {check_name}...")
+                print(f"\n[*] Checking {check_name}...")
                 result = check()
                 self.results["checks"][check.__name__] = result
-                status = "✅ PASS" if result["status"] == "pass" else "❌ FAIL" if result["status"] == "fail" else "⚠️  WARN"
+                status = "[PASS]" if result["status"] == "pass" else "[FAIL]" if result["status"] == "fail" else "[WARN]"
                 print(f"   {status}: {result['message']}")
                 if result.get("details"):
                     for detail in result["details"]:
-                        print(f"      • {detail}")
+                        print(f"      - {detail}")
             except Exception as e:
                 self.results["checks"][check.__name__] = {
                     "status": "error",
                     "message": f"Check failed: {str(e)}"
                 }
-                print(f"   ❌ ERROR: {str(e)}")
+                print(f"   [ERROR]: {str(e)}")
 
         # Calculate overall status
         self._calculate_overall_status()
@@ -572,38 +572,40 @@ class ProjectHealthChecker:
     def print_summary(self):
         """Print a formatted summary of the health check."""
         print("\n" + "=" * 60)
-        print("🏥 PROJECT HEALTH CHECK SUMMARY")
+        print("PROJECT HEALTH CHECK SUMMARY")
         print("=" * 60)
 
-        status_emoji = {
-            "pass": "✅",
-            "warn": "⚠️",
-            "fail": "❌",
-            "error": "💥"
+        status_text = {
+            "pass": "[PASS]",
+            "warn": "[WARN]",
+            "fail": "[FAIL]",
+            "error": "[ERROR]"
         }
 
         overall_status = self.results["overall_status"]
-        print(f"Overall Status: {status_emoji.get(overall_status, '❓')} {overall_status.upper()}")
+        print(f"Overall Status: {status_text.get(overall_status, '[UNKNOWN]')} {overall_status.upper()}")
 
         # Print metrics
         metrics = self.results.get("metrics", {})
         if metrics:
-            print(f"\n📊 Code Metrics:")
-            print(",.0f"            print(",.0f"            print(f"  Documentation files: {metrics.get('documentation_files', 0)}")
+            print(f"\nCode Metrics:")
+            print(f"  Python files: {metrics.get('python_files', 0)}")
+            print(f"  JavaScript files: {metrics.get('javascript_files', 0)}")
+            print(f"  Documentation files: {metrics.get('documentation_files', 0)}")
             print(f"  Test files: {metrics.get('test_files', 0)}")
 
         # Print check results
-        print(f"\n🔍 Check Results:")
+        print(f"\nCheck Results:")
         for check_name, result in self.results["checks"].items():
             status = result["status"]
-            emoji = status_emoji.get(status, "❓")
+            status_indicator = status_text.get(status, "[?]")
             display_name = check_name.replace("check_", "").replace("_", " ").title()
-            print(f"  {emoji} {display_name}: {result['message']}")
+            print(f"  {status_indicator} {display_name}: {result['message']}")
 
         # Print recommendations
         recommendations = self.results.get("recommendations", [])
         if recommendations:
-            print(f"\n💡 Recommendations ({len(recommendations)}):")
+            print(f"\nRecommendations ({len(recommendations)}):")
             for i, rec in enumerate(recommendations, 1):
                 print(f"  {i}. {rec}")
 
@@ -615,7 +617,7 @@ class ProjectHealthChecker:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(self.results, f, indent=2, ensure_ascii=False)
 
-        print(f"📄 Report saved to: {output_path}")
+        print(f"Report saved to: {output_path}")
 
 
 def main():
