@@ -10,6 +10,7 @@ from app.services.job_service import get_job, mark_job_completed, mark_job_faile
 from app.services.transcription_service import transcription_service
 from app.services.translation_service import translation_service
 from app.services.summarization_service import summarization_service
+from app.services.rag_service import rag_service
 from app.tasks.celery_app import celery_app
 from app.utils.audio import extract_audio_from_video, split_audio_into_chunks, validate_audio_file
 from structlog import get_logger
@@ -56,7 +57,19 @@ def process_transcription_job(self, job_id: str):
             language=job.language,
         )
 
-        update_job_progress(job_id, 60.0, "Transcription completed, processing results...")
+        update_job_progress(job_id, 50.0, "Transcription completed, applying RAG correction...")
+
+        # Step 2.5: RAG Correction (if enabled)
+        if settings.enable_rag and job.language in ["ar", "arabic"]:
+            try:
+                corrected_transcript = await rag_service.correct_transcription(transcript, job_id)
+                if corrected_transcript:
+                    transcript = corrected_transcript
+                    logger.info("RAG correction applied", job_id=job_id)
+            except Exception as e:
+                logger.warning("RAG correction failed, using original transcript", job_id=job_id, error=str(e))
+
+        update_job_progress(job_id, 60.0, "Correction completed, processing results...")
 
         # Step 3: Translation (if enabled)
         translation = None
@@ -82,13 +95,22 @@ def process_transcription_job(self, job_id: str):
 
         outputs = await _generate_outputs(job_id, segments, translation, summary)
 
-        # Step 6: Finalize job
+        # Step 6: Set up QA system for future queries
+        try:
+            await rag_service.setup_qa_system(transcript, job_id)
+            logger.info("QA system set up for job", job_id=job_id)
+        except Exception as e:
+            logger.warning("QA system setup failed, continuing", job_id=job_id, error=str(e))
+
+        # Step 7: Finalize job
         total_time = time.time() - start_time
         processing_stats = {
             "total_time_seconds": total_time,
             "transcription_stats": trans_stats.dict() if trans_stats else None,
             "profile_used": settings.detected_profile.value,
             "gpu_used": settings.gpu_memory_gb > 0,
+            "rag_correction_applied": settings.enable_rag and job.language in ["ar", "arabic"],
+            "qa_system_ready": True,
         }
 
         # Mark job as completed
