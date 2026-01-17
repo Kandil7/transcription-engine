@@ -175,6 +175,19 @@ services:
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
 
+  # RAG Knowledge Base Setup
+  kb-setup:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python scripts/populate_knowledge_base.py
+    environment:
+      - VECTOR_DB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    profiles:
+      - setup  # Only run when explicitly requested with --profile setup
+
   # Frontend React app
   frontend:
     build:

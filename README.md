@@ -52,6 +52,17 @@ ws.onmessage = (event) => {
 };
 ```
 
+### Ask Questions About Transcripts (RAG Q&A)
+```bash
+# First setup QA system for a job
+curl -X POST "http://localhost:8000/api/v1/qa/{job_id}/setup-qa"
+
+# Then ask questions
+curl -X POST "http://localhost:8000/api/v1/qa/{job_id}/ask" \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the main points discussed?"}'
+```
+
 ### Manual Setup
 
 #### Backend Setup
@@ -76,7 +87,8 @@ npm start
 - **Adaptive Engine**: Automatically detects hardware and optimizes for ULTRA/STD/CPU/EDGE profiles
 - **Arabic Excellence**: Fine-tuned for Egyptian dialect with 95%+ accuracy
 - **Real-time Streaming**: Live transcription with WebSocket support
-- **RAG Integration**: Contextual correction and intelligent Q&A
+- **RAG Integration**: Contextual correction using Arabic knowledge base
+- **Intelligent Q&A**: Ask questions about any transcript with source references
 - **Enterprise Ready**: Production-grade with observability, scaling, and security
 
 ## 🏗️ Architecture

@@ -11,17 +11,27 @@ import {
   Button,
   Grid,
   Divider,
-  Alert
+  Alert,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  CircularProgress
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import DownloadIcon from '@mui/icons-material/Download';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 function JobDetails() {
   const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [question, setQuestion] = useState('');
+  const [asking, setAsking] = useState(false);
+  const [answers, setAnswers] = useState([]);
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -45,6 +55,35 @@ function JobDetails() {
       enqueueSnackbar('Failed to load job details', { variant: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const askQuestion = async () => {
+    if (!question.trim()) {
+      enqueueSnackbar('Please enter a question', { variant: 'warning' });
+      return;
+    }
+
+    setAsking(true);
+    try {
+      const response = await axios.post(`/api/v1/qa/${jobId}/ask`, {
+        question: question.trim()
+      });
+
+      const newAnswer = {
+        id: Date.now(),
+        question: question.trim(),
+        ...response.data,
+        timestamp: new Date().toLocaleString()
+      };
+
+      setAnswers(prev => [newAnswer, ...prev]);
+      setQuestion('');
+
+    } catch (error) {
+      enqueueSnackbar('Failed to get answer', { variant: 'error' });
+    } finally {
+      setAsking(false);
     }
   };
 
@@ -192,6 +231,97 @@ function JobDetails() {
                     <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                       {results.summary}
                     </Typography>
+                  </CardContent>
+                </Card>
+              )}
+
+              {results && (
+                <Card sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                      <QuestionAnswerIcon sx={{ mr: 1 }} />
+                      Ask Questions About Your Content
+                    </Typography>
+
+                    <Box sx={{ mb: 3 }}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={9}>
+                          <TextField
+                            fullWidth
+                            label="Ask a question about this transcript"
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && askQuestion()}
+                            placeholder="e.g., What are the main points discussed?"
+                          />
+                        </Grid>
+                        <Grid item xs={3}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={askQuestion}
+                            disabled={asking || !question.trim()}
+                            sx={{ height: 56 }}
+                          >
+                            {asking ? <CircularProgress size={24} /> : 'Ask'}
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Box>
+
+                    {answers.length > 0 && (
+                      <Box>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Previous Questions & Answers
+                        </Typography>
+                        {answers.map((answer) => (
+                          <Accordion key={answer.id} sx={{ mb: 1 }}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Box sx={{ width: '100%' }}>
+                                <Typography variant="subtitle2">
+                                  Q: {answer.question}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {answer.timestamp} • Confidence: {(answer.confidence * 100).toFixed(0)}%
+                                </Typography>
+                              </Box>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Typography variant="body1" paragraph>
+                                <strong>Answer:</strong> {answer.answer}
+                              </Typography>
+
+                              {answer.sources && answer.sources.length > 0 && (
+                                <Box>
+                                  <Typography variant="subtitle2" gutterBottom>
+                                    Sources:
+                                  </Typography>
+                                  {answer.sources.map((source, index) => (
+                                    <Box key={index} sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                      <Typography variant="body2">
+                                        {source.text}
+                                      </Typography>
+                                      {source.chunk_id !== undefined && (
+                                        <Typography variant="caption" color="text.secondary">
+                                          Chunk {source.chunk_id}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                            </AccordionDetails>
+                          </Accordion>
+                        ))}
+                      </Box>
+                    )}
+
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        Ask questions in Arabic or English about the content of your transcript.
+                        The AI will search through the entire transcript to provide accurate answers with source references.
+                      </Typography>
+                    </Alert>
                   </CardContent>
                 </Card>
               )}
