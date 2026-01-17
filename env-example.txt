@@ -87,14 +87,17 @@ DIALECT_DETECTOR_PATH=./models/dialect_detector
 ENABLE_DIALECT_DETECTION=true
 
 # Translation Models
-TRANSLATION_MODEL=nllb-200-distilled-600M
+TRANSLATION_MODEL=facebook/nllb-200-distilled-600M
 TRANSLATION_CACHE_SIZE=10000
 TRANSLATION_MAX_LENGTH=512
 
 # Summarization Models
-SUMMARIZATION_MODEL=bart-large-cnn
+SUMMARIZATION_MODEL=facebook/bart-large-cnn
 SUMMARIZATION_MAX_LENGTH=150
 SUMMARIZATION_MIN_LENGTH=50
+
+# Embedding Models
+EMBEDDING_MODEL=aubmindlab/bert-base-arabertv02
 
 # Voice Analytics Models
 VOICE_ANALYTICS_ENABLED=true
@@ -194,6 +197,31 @@ HUGGINGFACE_API_KEY=your-huggingface-api-key
 
 # =================================================================
 # DEVELOPMENT SETTINGS
+# =================================================================
+# MONITORING & LOGGING
+# =================================================================
+# Prometheus Metrics
+ENABLE_PROMETHEUS=true
+PROMETHEUS_PORT=9090
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+
+# Error Tracking
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# =================================================================
+# FEATURE FLAGS
+# =================================================================
+# Enable/Disable Features
+ENABLE_TRANSLATION=true
+ENABLE_SUMMARIZATION=true
+ENABLE_VOICE_ANALYTICS=false
+ENABLE_RAG=true
+ENABLE_STREAMING=true
+ENABLE_TTS=false
+
 # =================================================================
 # Development Overrides
 PYTHONPATH=/app
