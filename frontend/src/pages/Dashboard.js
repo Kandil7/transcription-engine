@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { getStatusColor } from '../utils/helpers';
 
 function Dashboard() {
   const [jobs, setJobs] = useState([]);
@@ -36,16 +37,7 @@ function Dashboard() {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'warning',
-      processing: 'info',
-      completed: 'success',
-      failed: 'error',
-      cancelled: 'default'
-    };
-    return colors[status] || 'default';
-  };
+  // The getStatusColor function is now available from the helpers utility
 
   if (loading) {
     return (
