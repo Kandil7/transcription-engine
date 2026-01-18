@@ -14,8 +14,8 @@ optimum>=1.13.0
 # Whisper & Speech Processing
 openai-whisper>=20231117
 faster-whisper>=1.0.0
-insanely-fast-whisper>=1.0.0
-whisper-streaming>=1.0.0
+insanely-fast-whisper>=0.0.15
+whisper-streaming>=0.1.0
 
 # Audio Processing
 librosa>=0.10.0
