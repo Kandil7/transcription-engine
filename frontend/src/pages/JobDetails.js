@@ -29,6 +29,8 @@ import Timeline from '../components/Timeline';
 import SearchAndFilter from '../components/SearchAndFilter';
 import InteractiveTranscript from '../components/InteractiveTranscript';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { downloadFile, getStatusColor, getEmotionColor, getSpeakerColor } from '../utils/helpers';
 
 function JobDetails() {
   const { jobId } = useParams();
@@ -158,33 +160,14 @@ function JobDetails() {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'warning',
-      processing: 'info',
-      completed: 'success',
-      failed: 'error',
-      cancelled: 'default'
-    };
-    return colors[status] || 'default';
-  };
+  // The getStatusColor function is now available from the helpers utility
 
-  const handleDownload = (content, filename, mimeType = 'text/plain') => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // The handleDownload function is now available from the helpers utility
 
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Typography>Loading job details...</Typography>
+        <LoadingSpinner message="Loading job details..." />
       </Container>
     );
   }
@@ -324,7 +307,7 @@ function JobDetails() {
                       <Button
                         variant="outlined"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(results.transcript, 'transcript.txt')}
+                        onClick={() => downloadFile(results.transcript, 'transcript.txt')}
                         fullWidth
                       >
                         Transcript
@@ -335,7 +318,7 @@ function JobDetails() {
                       <Button
                         variant="outlined"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(results.translation, 'translation.txt')}
+                        onClick={() => downloadFile(results.translation, 'translation.txt')}
                         fullWidth
                       >
                         Translation
@@ -346,7 +329,7 @@ function JobDetails() {
                       <Button
                         variant="outlined"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(results.summary, 'summary.txt')}
+                        onClick={() => downloadFile(results.summary, 'summary.txt')}
                         fullWidth
                       >
                         Summary
@@ -357,7 +340,7 @@ function JobDetails() {
                       <Button
                         variant="outlined"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(results.subtitles_srt, 'subtitles.srt')}
+                        onClick={() => downloadFile(results.subtitles_srt, 'subtitles.srt')}
                         fullWidth
                       >
                         SRT Subtitles
@@ -368,7 +351,7 @@ function JobDetails() {
                       <Button
                         variant="outlined"
                         startIcon={<DownloadIcon />}
-                        onClick={() => handleDownload(results.subtitles_vtt, 'subtitles.vtt')}
+                        onClick={() => downloadFile(results.subtitles_vtt, 'subtitles.vtt')}
                         fullWidth
                       >
                         VTT Subtitles
@@ -835,7 +818,7 @@ function JobDetails() {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(results.transcript, 'transcript.txt')}
+                      onClick={() => downloadFile(results.transcript, 'transcript.txt')}
                       fullWidth
                     >
                       Transcript
@@ -846,7 +829,7 @@ function JobDetails() {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(results.translation, 'translation.txt')}
+                      onClick={() => downloadFile(results.translation, 'translation.txt')}
                       fullWidth
                     >
                       Translation
@@ -857,7 +840,7 @@ function JobDetails() {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(results.summary, 'summary.txt')}
+                      onClick={() => downloadFile(results.summary, 'summary.txt')}
                       fullWidth
                     >
                       Summary
@@ -868,7 +851,7 @@ function JobDetails() {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(results.subtitles_srt, 'subtitles.srt')}
+                      onClick={() => downloadFile(results.subtitles_srt, 'subtitles.srt')}
                       fullWidth
                     >
                       SRT Subtitles
@@ -879,7 +862,7 @@ function JobDetails() {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      onClick={() => handleDownload(results.subtitles_vtt, 'subtitles.vtt')}
+                      onClick={() => downloadFile(results.subtitles_vtt, 'subtitles.vtt')}
                       fullWidth
                     >
                       VTT Subtitles

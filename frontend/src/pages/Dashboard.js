@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import axios from 'axios';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 function Dashboard() {
   const [jobs, setJobs] = useState([]);
@@ -49,7 +50,7 @@ function Dashboard() {
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Typography>Loading...</Typography>
+        <SkeletonLoader type="dashboard" />
       </Container>
     );
   }

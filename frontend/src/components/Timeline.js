@@ -17,6 +17,7 @@ import {
   ZoomIn as ZoomInIcon,
   ZoomOut as ZoomOutIcon
 } from '@mui/icons-material';
+import { getEmotionColor, getSpeakerColor } from '../utils/helpers';
 
 function Timeline({
   segments,
@@ -68,27 +69,7 @@ function Timeline({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getEmotionColor = (emotion) => {
-    const colors = {
-      happy: '#4caf50',
-      sad: '#2196f3',
-      angry: '#f44336',
-      neutral: '#9e9e9e',
-      excited: '#ff9800',
-      calm: '#00bcd4',
-      confident: '#8bc34a',
-      nervous: '#ff5722'
-    };
-    return colors[emotion] || colors.neutral;
-  };
-
-  const getSpeakerColor = (speaker, index) => {
-    const colors = [
-      '#e3f2fd', '#f3e5f5', '#e8f5e8', '#fff3e0', '#fce4ec',
-      '#f1f8e9', '#e0f2f1', '#f9fbe7', '#efebe9', '#fafafa'
-    ];
-    return colors[index % colors.length];
-  };
+  // The getEmotionColor and getSpeakerColor functions are now available from the helpers utility
 
   return (
     <Paper sx={{ p: 2, mb: 3 }}>

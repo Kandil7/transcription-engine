@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { Box } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
 
 import Header from './components/Header';
+import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
@@ -13,18 +15,7 @@ import JobDetails from './pages/JobDetails';
 import Help from './pages/Help';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
-
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
+import theme from './theme';
 
 function App() {
   return (
@@ -33,16 +24,21 @@ function App() {
       <SnackbarProvider maxSnack={3}>
         <ErrorBoundary>
           <Router>
-            <Header />
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/streaming" element={<Streaming />} />
-              <Route path="/jobs/:jobId" element={<JobDetails />} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Header />
+              <Box component="main" sx={{ flex: 1, py: 3 }}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/upload" element={<Upload />} />
+                  <Route path="/streaming" element={<Streaming />} />
+                  <Route path="/jobs/:jobId" element={<JobDetails />} />
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Box>
+              <Footer />
+            </Box>
           </Router>
         </ErrorBoundary>
       </SnackbarProvider>
