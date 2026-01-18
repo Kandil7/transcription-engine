@@ -7,6 +7,7 @@ function Footer() {
   return (
     <Box
       component="footer"
+      role="contentinfo"
       sx={{
         py: 4,
         px: 2,
@@ -27,10 +28,10 @@ function Footer() {
           </Grid>
 
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" gutterBottom component="h3">
               Resources
             </Typography>
-            <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+            <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }} aria-label="Resource links">
               <li><Link href="/docs" target="_blank" underline="hover">API Docs</Link></li>
               <li><Link href="/help" underline="hover">Help Center</Link></li>
               <li><Link href="/settings" underline="hover">Settings</Link></li>
@@ -38,10 +39,10 @@ function Footer() {
           </Grid>
 
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" gutterBottom component="h3">
               Legal
             </Typography>
-            <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+            <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }} aria-label="Legal links">
               <li><Link href="#" underline="hover">Privacy Policy</Link></li>
               <li><Link href="#" underline="hover">Terms of Service</Link></li>
               <li><Link href="#" underline="hover">Licensing</Link></li>
@@ -49,7 +50,7 @@ function Footer() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography variant="subtitle2" gutterBottom component="h3">
               Contact Us
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
