@@ -24,6 +24,9 @@ function Header() {
           <Button color="inherit" onClick={() => navigate('/streaming')} startIcon={<StreamIcon />}>
             Live Stream
           </Button>
+          <Button color="inherit" onClick={() => navigate('/help')}>
+            Help
+          </Button>
         </Box>
       </Toolbar>
     </AppBar>

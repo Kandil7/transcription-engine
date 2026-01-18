@@ -201,9 +201,64 @@ function Streaming() {
   };
 
   const convertToWav = async (chunks) => {
-    // Convert WebM chunks to WAV (simplified - in production use a proper library)
     const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-    return audioBlob; // Placeholder - real conversion needed
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    // Encode as WAV (16-bit PCM, 16kHz, mono)
+    const wavBuffer = encodeWAV(audioBuffer);
+    return new Blob([wavBuffer], { type: 'audio/wav' });
+  };
+
+  const encodeWAV = (audioBuffer) => {
+    const numChannels = 1; // Force mono
+    const sampleRate = 16000;
+    const format = 1; // PCM
+    const bitDepth = 16;
+
+    const savedSamples = audioBuffer.getChannelData(0);
+    const bufferLength = savedSamples.length;
+    const dataLength = bufferLength * 2;
+    const buffer = new ArrayBuffer(44 + dataLength);
+    const view = new DataView(buffer);
+
+    // RIFF chunk
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(view, 8, 'WAVE');
+
+    // fmt sub-chunk
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
+    view.setUint16(32, numChannels * (bitDepth / 8), true);
+    view.setUint16(34, bitDepth, true);
+
+    // data sub-chunk
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataLength, true);
+
+    // Write audio data
+    floatTo16BitPCM(view, 44, savedSamples);
+
+    return buffer;
+  };
+
+  const writeString = (view, offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  const floatTo16BitPCM = (output, offset, input) => {
+    for (let i = 0; i < input.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, input[i]));
+      output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
   };
 
   const handleTranscriptionChunk = (data) => {
