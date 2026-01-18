@@ -9,7 +9,14 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects import postgresql, sqlite
+
+# Detect database type
+from app.config import settings
+if "sqlite" in settings.database_url.lower():
+    JSON_TYPE = sa.JSON  # SQLite uses JSON
+else:
+    JSON_TYPE = postgresql.JSONB  # PostgreSQL uses JSONB
 
 # revision identifiers, used by Alembic.
 revision: str = '001_initial'
@@ -39,8 +46,8 @@ def upgrade() -> None:
         sa.Column('transcript', sa.Text(), nullable=True),
         sa.Column('translation', sa.Text(), nullable=True),
         sa.Column('summary', sa.Text(), nullable=True),
-        sa.Column('hierarchical_summary', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column('voice_analytics', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column('hierarchical_summary', JSON_TYPE(), nullable=True),
+        sa.Column('voice_analytics', JSON_TYPE(), nullable=True),
         sa.Column('subtitles_srt', sa.Text(), nullable=True),
         sa.Column('subtitles_vtt', sa.Text(), nullable=True),
         sa.Column('audio_summary_url', sa.Text(), nullable=True),
@@ -49,7 +56,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('started_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('processing_stats', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column('processing_stats', JSON_TYPE(), nullable=True),
         sa.Column('processing_profile', sa.String(length=20), nullable=True),
         sa.Column('gpu_used', sa.Boolean(), nullable=True),
         sa.PrimaryKeyConstraint('id')

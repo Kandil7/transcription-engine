@@ -25,7 +25,16 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Set the SQLAlchemy URL from settings
-config.set_main_option("sqlalchemy.url", settings.database_url.replace("postgresql://", "postgresql+asyncpg://"))
+# Convert async URL to sync URL for Alembic
+db_url = settings.database_url
+if "sqlite+aiosqlite" in db_url:
+    db_url = db_url.replace("sqlite+aiosqlite:///", "sqlite:///")
+elif "postgresql+asyncpg" in db_url:
+    db_url = db_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://")
+
+config.set_main_option("sqlalchemy.url", db_url)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -73,9 +82,17 @@ def run_migrations_online() -> None:
     from sqlalchemy import create_engine
     
     # Convert async URL to sync URL
-    sync_url = settings.database_url.replace("postgresql+asyncpg://", "postgresql://")
-    if sync_url == settings.database_url:
-        sync_url = settings.database_url.replace("postgresql://", "postgresql+psycopg2://")
+    sync_url = settings.database_url
+    
+    # Handle SQLite
+    if "sqlite" in sync_url.lower():
+        sync_url = sync_url.replace("sqlite+aiosqlite:///", "sqlite:///")
+        sync_url = sync_url.replace("sqlite:///", "sqlite:///")
+    # Handle PostgreSQL
+    elif "postgresql" in sync_url.lower():
+        sync_url = sync_url.replace("postgresql+asyncpg://", "postgresql://")
+        if sync_url == settings.database_url:
+            sync_url = settings.database_url.replace("postgresql://", "postgresql+psycopg2://")
     
     connectable = create_engine(
         sync_url,

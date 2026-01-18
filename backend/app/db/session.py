@@ -10,21 +10,28 @@ from sqlalchemy.pool import StaticPool
 from app.config import settings
 
 # Create async engine
-if settings.database_url.startswith("sqlite"):
-    # SQLite async setup
+db_url = settings.database_url
+if db_url.startswith("sqlite"):
+    # SQLite async setup - ensure proper format
+    if "sqlite+aiosqlite" not in db_url:
+        db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
     engine = create_async_engine(
-        settings.database_url.replace("sqlite://", "sqlite+aiosqlite://"),
+        db_url,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
         echo=settings.environment == "development",
     )
-else:
+elif db_url.startswith("postgresql"):
     # PostgreSQL async setup
+    if "postgresql+asyncpg" not in db_url:
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
     engine = create_async_engine(
-        settings.database_url.replace("postgresql://", "postgresql+asyncpg://"),
+        db_url,
         echo=settings.environment == "development",
         pool_pre_ping=True,
     )
+else:
+    raise ValueError(f"Unsupported database URL: {db_url}")
 
 # Create async session factory
 async_session_factory = sessionmaker(
