@@ -11,6 +11,7 @@ import Upload from './pages/Upload';
 import Streaming from './pages/Streaming';
 import JobDetails from './pages/JobDetails';
 import Help from './pages/Help';
+import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
 const theme = createTheme({
@@ -39,6 +40,7 @@ function App() {
               <Route path="/streaming" element={<Streaming />} />
               <Route path="/jobs/:jobId" element={<JobDetails />} />
               <Route path="/help" element={<Help />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>
