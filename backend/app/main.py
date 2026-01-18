@@ -15,6 +15,7 @@ from app.config import settings
 from app.core.exceptions import TranscriptionEngineError
 from app.core.logging import setup_logging
 from app.core.monitoring import init_monitoring
+from app.core.validation import validate_all
 from app.db.session import init_db
 
 # Setup logging
@@ -27,12 +28,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     logger.info("Starting Transcription Engine", profile=settings.detected_profile.value)
 
+    # Validate configuration
+    try:
+        warnings = await validate_all()
+        if warnings:
+            logger.warning("Configuration validation warnings", warnings=warnings)
+        else:
+            logger.info("Configuration validation passed")
+    except Exception as e:
+        logger.error("Configuration validation failed", error=str(e))
+        # Don't fail startup, but log the error
+
     # Initialize database
-    await init_db()
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error("Database initialization failed", error=str(e))
+        # In production, you might want to fail fast here
+        if settings.environment.value == "production":
+            raise
 
     # Initialize monitoring
     if settings.enable_prometheus:
-        init_monitoring()
+        try:
+            init_monitoring()
+            logger.info("Monitoring initialized successfully")
+        except Exception as e:
+            logger.warning("Monitoring initialization failed", error=str(e))
 
     logger.info("Application startup complete")
 
@@ -70,14 +93,35 @@ if settings.enable_prometheus:
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {
+    """Health check endpoint with detailed status."""
+    from app.core.validation import validate_database_connection, validate_redis_connection
+    
+    health_status = {
         "status": "healthy",
         "version": settings.version,
         "profile": settings.detected_profile.value,
         "gpu_memory_gb": settings.gpu_memory_gb,
         "cpu_cores": settings.cpu_cores,
+        "environment": settings.environment.value,
     }
+    
+    # Check database connectivity
+    try:
+        await validate_database_connection()
+        health_status["database"] = "connected"
+    except Exception as e:
+        health_status["database"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    # Check Redis connectivity
+    try:
+        await validate_redis_connection()
+        health_status["redis"] = "connected"
+    except Exception as e:
+        health_status["redis"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    return health_status
 
 
 @app.get("/")
