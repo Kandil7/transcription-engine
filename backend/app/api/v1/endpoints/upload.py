@@ -14,6 +14,7 @@ from app.core.storage import upload_file
 from app.models.job import JobCreate, JobStatus
 from app.services.job_service import create_job
 from app.utils.audio import validate_audio_file
+from app.utils.download import download_file_from_url
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -37,6 +38,7 @@ async def upload_audio_file(
     enable_voice_analytics: bool = Form(False, description="Enable voice analytics (speaker diarization & emotion detection)"),
     target_language: str = Form("en", description="Target language for translation"),
     summary_length: str = Form("medium", description="Summary length (short/medium/long)"),
+    text_sample: Optional[str] = Form(None, description="Text sample for Egyptian dialect detection"),
 ) -> UploadResponse:
     """
     Upload an audio/video file for transcription.
@@ -106,6 +108,7 @@ async def upload_audio_file(
             enable_voice_analytics=enable_voice_analytics,
             target_language=target_language,
             summary_length=summary_length,
+            text_sample=text_sample,
         )
 
         await create_job(job_data)
@@ -169,14 +172,33 @@ async def upload_from_url(
         # Generate job ID
         job_id = str(uuid.uuid4())
 
-        # Download file from URL (implement this)
-        # For now, just create a placeholder job
+        # Download file from URL
+        logger.info("Downloading file from URL", job_id=job_id, url=url)
+        file_path = await download_file_from_url(
+            url,
+            output_path=os.path.join(settings.upload_dir, f"{job_id}_downloaded"),
+            max_size_mb=settings.max_file_size_mb,
+        )
+
+        # Get file size
+        file_size = os.path.getsize(file_path)
+
+        # Validate audio file and get duration
+        audio_info = await validate_audio_file(file_path)
+        if audio_info["duration"] > settings.max_duration_hours * 3600:
+            os.remove(file_path)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Audio too long. Maximum duration: {settings.max_duration_hours} hours"
+            )
+
+        # Create job record
         job_data = JobCreate(
             id=job_id,
-            filename=f"url_{job_id}",
-            file_path=url,  # Store URL as file_path for URL-based jobs
-            file_size=0,  # Will be determined during download
-            duration=0,  # Will be determined during processing
+            filename=os.path.basename(file_path),
+            file_path=file_path,
+            file_size=file_size,
+            duration=audio_info["duration"],
             language=language,
             status=JobStatus.PENDING,
             enable_translation=enable_translation,
@@ -187,13 +209,26 @@ async def upload_from_url(
 
         await create_job(job_data)
 
-        logger.info("URL upload job created", job_id=job_id, url=url)
+        # Start the processing task
+        from app.tasks.transcription_tasks import process_transcription_job
+        process_transcription_job.delay(job_id)
+
+        # Estimate processing time
+        estimated_seconds = _estimate_processing_time(audio_info["duration"])
+
+        logger.info(
+            "URL upload job created successfully",
+            job_id=job_id,
+            url=url,
+            file_size=file_size,
+            duration=audio_info["duration"]
+        )
 
         return UploadResponse(
             job_id=job_id,
-            status="created",
-            message="URL upload job created. Processing will start shortly.",
-            estimated_duration_seconds=None  # Will be determined after download
+            status="uploaded",
+            message="File downloaded from URL. Processing started.",
+            estimated_duration_seconds=estimated_seconds
         )
 
     except Exception as e:

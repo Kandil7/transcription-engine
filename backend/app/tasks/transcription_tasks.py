@@ -2,10 +2,11 @@
 
 import os
 import time
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from app.config import settings
 from app.models.job import JobStatus
+from app.models.job import JobUpdate
 from app.services.job_service import get_job, mark_job_completed, mark_job_failed, update_job, update_job_progress
 from app.services.transcription_service import transcription_service
 from app.services.translation_service import translation_service
@@ -39,20 +40,24 @@ def process_transcription_job(self, job_id: str):
 
     try:
         # Get job details
-        job = get_job(job_id)
+        job = asyncio.run(get_job(job_id))
         if not job:
             logger.error("Job not found", job_id=job_id)
             return
 
         # Update job status
-        update_job(job_id, JobStatus.PREPROCESSING, 10.0, "Preparing audio...")
+        asyncio.run(update_job(job_id, JobUpdate(
+            status=JobStatus.PREPROCESSING,
+            progress=10.0,
+            message="Preparing audio..."
+        )))
 
         # Step 1: Preprocessing - Run async function in sync context
         audio_path = asyncio.run(_preprocess_audio(job))
         if not audio_path:
             raise Exception("Audio preprocessing failed")
 
-        update_job_progress(job_id, 20.0, "Audio prepared, starting transcription...")
+        asyncio.run(update_job_progress(job_id, 20.0, "Audio prepared, starting transcription..."))
 
         # Step 2: Transcription with dialect adaptation
         dialect_info = None
@@ -97,7 +102,7 @@ def process_transcription_job(self, job_id: str):
                     language=job.language,
                 ))
 
-        update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers...")
+        asyncio.run(update_job_progress(job_id, 45.0, "Transcription completed, analyzing speakers..."))
 
         # Step 2.5: Voice Analytics (speaker diarization and emotion detection)
         voice_analytics_result = None
@@ -131,7 +136,7 @@ def process_transcription_job(self, job_id: str):
             except Exception as e:
                 logger.warning("Voice analytics failed, continuing without it", job_id=job_id, error=str(e))
 
-        update_job_progress(job_id, 55.0, "Voice analysis completed, applying RAG correction...")
+        asyncio.run(update_job_progress(job_id, 55.0, "Voice analysis completed, applying RAG correction..."))
 
         # Step 3: RAG Correction (if enabled)
         if settings.enable_rag and job.language in ["ar", "arabic"]:
@@ -143,12 +148,12 @@ def process_transcription_job(self, job_id: str):
             except Exception as e:
                 logger.warning("RAG correction failed, using original transcript", job_id=job_id, error=str(e))
 
-        update_job_progress(job_id, 60.0, "Correction completed, processing results...")
+        asyncio.run(update_job_progress(job_id, 60.0, "Correction completed, processing results..."))
 
         # Step 3: Translation (if enabled)
         translation = None
         if job.enable_translation:
-            update_job_progress(job_id, 70.0, "Translating content...")
+            asyncio.run(update_job_progress(job_id, 70.0, "Translating content..."))
             translation = asyncio.run(translation_service.translate_text(
                 text=transcript,
                 source_lang=job.language,
@@ -159,7 +164,7 @@ def process_transcription_job(self, job_id: str):
         summary = None
         hierarchical_summary = None
         if job.enable_summary:
-            update_job_progress(job_id, 80.0, "Generating hierarchical summary...")
+            asyncio.run(update_job_progress(job_id, 80.0, "Generating hierarchical summary..."))
 
             # Generate hierarchical summary for better navigation
             hierarchical_result = asyncio.run(summarization_service.generate_hierarchical_summary(
@@ -185,7 +190,7 @@ def process_transcription_job(self, job_id: str):
                 ))
 
         # Step 5: Generate outputs
-        update_job_progress(job_id, 90.0, "Generating output files...")
+        asyncio.run(update_job_progress(job_id, 90.0, "Generating output files..."))
 
         outputs = asyncio.run(_generate_outputs(job_id, segments, translation, summary))
 
@@ -239,10 +244,13 @@ async def _preprocess_audio(job) -> str:
     try:
         file_path = job.file_path
 
-        # Check if it's a URL (for future URL support)
+        # Check if it's a URL (should already be downloaded, but handle gracefully)
         if file_path.startswith("http"):
-            # Download file (implement later)
-            raise NotImplementedError("URL downloads not yet implemented")
+            # This should not happen as URL should be downloaded in upload endpoint
+            # But handle it gracefully by downloading here
+            from app.utils.download import download_file_from_url
+            logger.warning("URL found in preprocessing, downloading now", job_id=job.id)
+            file_path = await download_file_from_url(file_path)
 
         # Validate and get audio info
         audio_info = await validate_audio_file(file_path)
@@ -464,6 +472,6 @@ def _format_timestamp(seconds: float) -> str:
     millis = int((seconds % 1) * 1000)
 
     if hours > 0:
-        return "02d"
+        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
     else:
-        return "02d"
+        return f"{minutes:02d}:{secs:02d},{millis:03d}"

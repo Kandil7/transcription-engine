@@ -27,6 +27,7 @@ async def create_job(job_data: JobCreate) -> Job:
             enable_voice_analytics=job_data.enable_voice_analytics,
             target_language=job_data.target_language,
             summary_length=job_data.summary_length,
+            text_sample=job_data.text_sample,
         )
 
         session.add(db_job)
@@ -173,7 +174,8 @@ def _db_to_model(db_job: DBJob) -> Job:
         enable_voice_analytics=db_job.enable_voice_analytics,
         target_language=db_job.target_language,
         summary_length=db_job.summary_length,
-    transcript=db_job.transcript,
+        text_sample=db_job.text_sample,
+        transcript=db_job.transcript,
     translation=db_job.translation,
     summary=db_job.summary,
     hierarchical_summary=db_job.hierarchical_summary,
