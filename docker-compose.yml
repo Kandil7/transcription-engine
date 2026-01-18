@@ -6,6 +6,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: cpu-production  # Use CPU-only version for broader compatibility
     ports:
       - "8000:8000"
     environment:
@@ -25,13 +26,14 @@ services:
       - postgres
       - chromadb
       - minio
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # Remove GPU requirements for broader compatibility
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -44,6 +46,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: cpu-production  # Use CPU-only version for broader compatibility
     command: celery -A app.tasks worker --loglevel=info -c 4
     environment:
       - ENVIRONMENT=development
@@ -62,13 +65,14 @@ services:
       - postgres
       - chromadb
       - minio
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # Remove GPU requirements for broader compatibility
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
     restart: unless-stopped
 
   # Celery Beat for scheduled tasks
@@ -76,6 +80,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: cpu-production  # Use CPU-only version for broader compatibility
     command: celery -A app.tasks beat --loglevel=info
     environment:
       - ENVIRONMENT=development
