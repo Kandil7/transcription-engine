@@ -5,9 +5,22 @@ import io
 import time
 from typing import AsyncGenerator, Dict, Optional
 
-import numpy as np
-from faster_whisper import WhisperModel
 from structlog import get_logger
+
+# Optional imports
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
+
+try:
+    from faster_whisper import WhisperModel
+    FASTER_WHISPER_AVAILABLE = True
+except ImportError:
+    FASTER_WHISPER_AVAILABLE = False
+    WhisperModel = None
 
 from app.config import settings
 
@@ -24,6 +37,10 @@ class StreamingTranscriptionService:
 
     async def load_model(self) -> None:
         """Load the Whisper model for streaming."""
+        if not FASTER_WHISPER_AVAILABLE or not NUMPY_AVAILABLE:
+            logger.warning("Streaming dependencies not available - streaming disabled")
+            return
+            
         if self.model_loaded:
             return
 

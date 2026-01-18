@@ -84,3 +84,7 @@ class WebSocketManager:
     async def get_total_connections(self) -> int:
         """Get the total number of active connections across all jobs."""
         return sum(len(sockets) for sockets in self.active_connections.values())
+
+
+# Global WebSocket manager instance
+ws_manager = WebSocketManager()

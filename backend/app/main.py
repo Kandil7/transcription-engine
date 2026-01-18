@@ -7,8 +7,13 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from prometheus_client import make_asgi_app
 from structlog import get_logger
+
+try:
+    from prometheus_client import make_asgi_app
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
 
 from app.api.v1.api import api_router
 from app.config import settings
@@ -86,9 +91,12 @@ app.add_middleware(
 )
 
 # Add Prometheus metrics endpoint
-if settings.enable_prometheus:
-    metrics_app = make_asgi_app()
-    app.mount("/metrics", metrics_app)
+if settings.enable_prometheus and PROMETHEUS_AVAILABLE:
+    try:
+        metrics_app = make_asgi_app()
+        app.mount("/metrics", metrics_app)
+    except Exception as e:
+        logger.warning("Prometheus metrics not available", error=str(e))
 
 
 @app.get("/health")

@@ -78,13 +78,17 @@ async def validate_redis_connection() -> bool:
         import urllib.parse
         parsed = urllib.parse.urlparse(redis_url)
         
-        # Connect to Redis
-        r = redis.from_url(redis_url)
-        await r.ping()
-        await r.close()
-        
-        logger.info("Redis connection validated successfully")
-        return True
+        # Connect to Redis with timeout
+        import asyncio
+        r = redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+        try:
+            await asyncio.wait_for(r.ping(), timeout=2.0)
+            await r.close()
+            logger.info("Redis connection validated successfully")
+            return True
+        except asyncio.TimeoutError:
+            await r.close()
+            raise Exception("Redis connection timeout")
         
     except Exception as e:
         logger.error("Redis validation failed", error=str(e))

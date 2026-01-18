@@ -3,18 +3,26 @@
 import os
 from typing import Dict, List, Optional, Tuple
 
-from chromadb import Client, Settings
-from chromadb.utils import embedding_functions
-from langchain.chains import RetrievalQA
-from langchain.docstore.document import Document
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.llms import HuggingFacePipeline
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
 from structlog import get_logger
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 from app.config import settings
+
+# Optional imports for AI/ML features
+try:
+    from chromadb import Client, Settings
+    from chromadb.utils import embedding_functions
+    from langchain.chains import RetrievalQA
+    from langchain.docstore.document import Document
+    from langchain.embeddings import HuggingFaceEmbeddings
+    from langchain.llms import HuggingFacePipeline
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain.vectorstores import Chroma
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    logger = get_logger(__name__)
+    logger.warning("RAG dependencies not available. RAG features will be disabled.")
 
 logger = get_logger(__name__)
 
@@ -31,6 +39,10 @@ class RAGService:
 
     async def initialize(self) -> None:
         """Initialize the RAG service components."""
+        if not RAG_AVAILABLE:
+            logger.warning("RAG service not available - dependencies not installed")
+            return
+            
         if self.initialized:
             return
 
@@ -72,7 +84,10 @@ class RAGService:
 
         except Exception as e:
             logger.error("Failed to initialize RAG service", error=str(e))
-            raise
+            if not RAG_AVAILABLE:
+                logger.warning("RAG dependencies not installed - service will operate in limited mode")
+            else:
+                raise
 
     async def correct_transcription(self, transcript: str, job_id: str) -> str:
         """
@@ -85,6 +100,10 @@ class RAGService:
         Returns:
             Corrected transcript
         """
+        if not RAG_AVAILABLE or not self.initialized:
+            logger.debug("RAG not available, returning original transcript")
+            return transcript
+            
         await self.initialize()
 
         try:

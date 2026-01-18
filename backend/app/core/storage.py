@@ -3,10 +3,17 @@
 import os
 from typing import Optional
 
-from minio import Minio
 from structlog import get_logger
 
 from app.config import settings
+
+# Optional MinIO import
+try:
+    from minio import Minio
+    MINIO_AVAILABLE = True
+except ImportError:
+    MINIO_AVAILABLE = False
+    Minio = None
 
 logger = get_logger(__name__)
 
@@ -19,6 +26,8 @@ class StorageClient:
         self.storage_type = settings.storage_type
 
         if self.storage_type == "minio":
+            if not MINIO_AVAILABLE:
+                raise ValueError("MinIO storage requested but 'minio' package not installed. Use 'local' storage or install: pip install minio")
             self.client = Minio(
                 endpoint=settings.minio_endpoint or "localhost:9000",
                 access_key=settings.minio_access_key or "minioadmin",
@@ -28,6 +37,8 @@ class StorageClient:
             self.bucket = settings.minio_bucket
 
         elif self.storage_type == "s3":
+            if not MINIO_AVAILABLE:
+                raise ValueError("S3 storage requested but 'minio' package not installed. Use 'local' storage or install: pip install minio")
             self.client = Minio(
                 endpoint=settings.aws_region + ".amazonaws.com",
                 access_key=settings.aws_access_key_id,

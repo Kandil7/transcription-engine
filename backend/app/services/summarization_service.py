@@ -2,7 +2,12 @@
 
 from typing import Optional
 
-from transformers import pipeline
+try:
+    from transformers import pipeline
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
+    pipeline = None
 from structlog import get_logger
 
 from app.config import settings
@@ -19,6 +24,10 @@ class SummarizationService:
 
     async def load_model(self):
         """Load the summarization model."""
+        if not TRANSFORMERS_AVAILABLE:
+            logger.warning("Transformers not available - summarization disabled")
+            return
+            
         if self.loaded:
             return
 

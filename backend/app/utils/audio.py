@@ -4,8 +4,15 @@ import os
 import subprocess
 from typing import Dict, Optional
 
-import ffmpeg
 from structlog import get_logger
+
+# Optional ffmpeg import
+try:
+    import ffmpeg
+    FFMPEG_AVAILABLE = True
+except ImportError:
+    FFMPEG_AVAILABLE = False
+    ffmpeg = None
 
 logger = get_logger(__name__)
 
@@ -74,6 +81,9 @@ def extract_audio_from_video(
     Returns:
         Path to extracted audio file
     """
+    if not FFMPEG_AVAILABLE:
+        raise ValueError("ffmpeg-python not installed. Install with: pip install ffmpeg-python")
+        
     try:
         logger.info("Extracting audio from video", video_path=video_path, audio_path=audio_path)
 
@@ -99,7 +109,7 @@ def extract_audio_from_video(
         raise
 
 
-def split_audio_into_chunks(
+async def split_audio_into_chunks(
     audio_path: str,
     output_dir: str,
     chunk_duration: int = 300,  # 5 minutes
@@ -117,9 +127,12 @@ def split_audio_into_chunks(
     Returns:
         List of chunk file paths
     """
+    if not FFMPEG_AVAILABLE:
+        raise ValueError("ffmpeg-python not installed. Install with: pip install ffmpeg-python")
+        
     try:
         # Get audio duration
-        info = validate_audio_file(audio_path)
+        info = await validate_audio_file(audio_path)
         duration = info["duration"]
 
         if duration <= chunk_duration:
@@ -190,6 +203,9 @@ def convert_audio_format(
     Returns:
         Path to converted file
     """
+    if not FFMPEG_AVAILABLE:
+        raise ValueError("ffmpeg-python not installed. Install with: pip install ffmpeg-python")
+        
     try:
         logger.info(
             "Converting audio format",

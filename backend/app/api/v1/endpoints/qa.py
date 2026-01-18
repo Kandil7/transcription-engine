@@ -7,7 +7,24 @@ from pydantic import BaseModel
 from structlog import get_logger
 
 from app.services.job_service import get_job
-from app.services.rag_service import rag_service
+
+try:
+    from app.services.rag_service import rag_service
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    # Create a dummy service for when RAG is not available
+    class DummyRAGService:
+        async def ask_question(self, question: str, job_id: str):
+            return {
+                "answer": "RAG service is not available. Install chromadb and transformers to enable Q&A.",
+                "sources": [],
+                "confidence": 0.0,
+                "job_id": job_id
+            }
+        async def setup_qa_system(self, transcript: str, job_id: str):
+            pass
+    rag_service = DummyRAGService()
 
 logger = get_logger(__name__)
 router = APIRouter()

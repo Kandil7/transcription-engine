@@ -4,9 +4,16 @@ import os
 import tempfile
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-import torch
-from pyannote.audio import Pipeline
+try:
+    import numpy as np
+    import torch
+    from pyannote.audio import Pipeline
+    VOICE_ANALYTICS_AVAILABLE = True
+except ImportError:
+    VOICE_ANALYTICS_AVAILABLE = False
+    np = None
+    torch = None
+    Pipeline = None
 from structlog import get_logger
 
 from app.config import settings
@@ -25,6 +32,10 @@ class VoiceAnalyticsService:
 
     async def load_diarization_model(self) -> None:
         """Load the speaker diarization model."""
+        if not VOICE_ANALYTICS_AVAILABLE:
+            logger.warning("Voice analytics dependencies not available - diarization disabled")
+            return
+            
         if self.diarization_loaded:
             return
 

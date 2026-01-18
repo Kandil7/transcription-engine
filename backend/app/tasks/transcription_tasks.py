@@ -268,7 +268,7 @@ async def _preprocess_audio(job) -> str:
             chunk_dir = os.path.join(settings.processed_dir, f"chunks_{job.id}")
             os.makedirs(chunk_dir, exist_ok=True)
 
-            chunks = split_audio_into_chunks(
+            chunks = await split_audio_into_chunks(
                 audio_path,
                 chunk_dir,
                 chunk_duration=settings.chunk_size_seconds,

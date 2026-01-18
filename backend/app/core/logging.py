@@ -4,7 +4,8 @@ import logging
 import sys
 from typing import Optional
 
-from structlog import configure, get_logger, stdlib, write_to_loguru
+import structlog
+from structlog import configure, get_logger, stdlib
 from structlog.contextvars import merge_contextvars
 
 logger = get_logger(__name__)
@@ -53,7 +54,11 @@ def setup_logging(
         # JSON format for production
         shared_processors.extend([
             stdlib.ExtraAdder(),
-            write_to_loguru,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.processors.JSONRenderer(),
         ])
     else:
         # Human-readable format for development
@@ -63,7 +68,7 @@ def setup_logging(
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer(),
         ])
 
     configure(
