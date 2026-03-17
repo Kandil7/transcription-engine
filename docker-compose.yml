@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.cpu
     ports:
       - "8000:8000"
     environment:
@@ -25,13 +25,6 @@ services:
       - postgres
       - chromadb
       - minio
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -43,8 +36,8 @@ services:
   worker:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A app.tasks worker --loglevel=info -c 4
+      dockerfile: Dockerfile.cpu
+    command: celery -A app.tasks worker --loglevel=info -c 2
     environment:
       - ENVIRONMENT=development
       - REDIS_URL=redis://redis:6379/0
@@ -62,20 +55,13 @@ services:
       - postgres
       - chromadb
       - minio
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     restart: unless-stopped
 
   # Celery Beat for scheduled tasks
   beat:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.cpu
     command: celery -A app.tasks beat --loglevel=info
     environment:
       - ENVIRONMENT=development
@@ -134,8 +120,8 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "19002:9000"
+      - "19003:9001"
     volumes:
       - minio_data:/data
     restart: unless-stopped
@@ -201,6 +187,8 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    profiles:
+      - with-frontend  # Only start when explicitly requested
 
 volumes:
   redis_data:

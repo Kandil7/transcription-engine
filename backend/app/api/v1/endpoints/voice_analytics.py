@@ -7,7 +7,13 @@ from pydantic import BaseModel
 from structlog import get_logger
 
 from app.services.job_service import get_job
-from app.services.voice_analytics_service import voice_analytics_service
+
+try:
+    from app.services.voice_analytics_service import voice_analytics_service
+    VOICE_ANALYTICS_AVAILABLE = True
+except ImportError:
+    VOICE_ANALYTICS_AVAILABLE = False
+    voice_analytics_service = None
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -50,6 +56,12 @@ async def analyze_voice(job_id: str) -> VoiceAnalyticsResponse:
 
     - **job_id**: Unique job identifier
     """
+    if not VOICE_ANALYTICS_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Voice analytics service is not available"
+        )
+    
     try:
         # Validate job exists and is completed
         job = await get_job(job_id)
@@ -164,6 +176,12 @@ async def get_models_status():
     """
     Get the status of voice analytics models.
     """
+    if not VOICE_ANALYTICS_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Voice analytics service is not available"
+        )
+    
     try:
         status = voice_analytics_service.get_model_status()
         return {

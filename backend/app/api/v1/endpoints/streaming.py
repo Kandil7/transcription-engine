@@ -6,7 +6,12 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from structlog import get_logger
 
-from app.services.streaming_service import streaming_service
+try:
+    from app.services.streaming_service import streaming_service
+    STREAMING_AVAILABLE = True
+except ImportError:
+    STREAMING_AVAILABLE = False
+    streaming_service = None
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -43,6 +48,12 @@ async def start_stream(stream_id: str, request: StreamStartRequest):
     - **stream_id**: Unique stream identifier
     - **language**: Language code for transcription
     """
+    if not STREAMING_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Streaming service is not available"
+        )
+    
     try:
         await streaming_service.start_stream(stream_id, request.language)
 
@@ -68,6 +79,12 @@ async def get_stream_status(stream_id: str) -> StreamStatusResponse:
 
     - **stream_id**: Unique stream identifier
     """
+    if not STREAMING_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Streaming service is not available"
+        )
+    
     try:
         status_info = await streaming_service.get_stream_status(stream_id)
 
@@ -95,6 +112,12 @@ async def stop_stream(stream_id: str):
 
     - **stream_id**: Unique stream identifier
     """
+    if not STREAMING_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Streaming service is not available"
+        )
+    
     try:
         final_results = await streaming_service.end_stream(stream_id)
 
@@ -122,6 +145,12 @@ async def list_active_streams() -> StreamListResponse:
     """
     List all active streaming sessions.
     """
+    if not STREAMING_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Streaming service is not available"
+        )
+    
     try:
         active_streams = streaming_service.list_active_streams()
 

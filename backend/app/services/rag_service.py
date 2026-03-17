@@ -5,14 +5,10 @@ from typing import Dict, List, Optional, Tuple
 
 from chromadb import Client, Settings
 from chromadb.utils import embedding_functions
-from langchain.chains import RetrievalQA
-from langchain.docstore.document import Document
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.llms import HuggingFacePipeline
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
+from langchain_core.documents import Document
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 from structlog import get_logger
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 
 from app.config import settings
 

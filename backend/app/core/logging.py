@@ -4,7 +4,7 @@ import logging
 import sys
 from typing import Optional
 
-from structlog import configure, get_logger, stdlib, write_to_loguru
+from structlog import configure, get_logger
 from structlog.contextvars import merge_contextvars
 
 logger = get_logger(__name__)

@@ -896,12 +896,9 @@ function JobDetails() {
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
-      )}
 
-      {currentTab === 3 && (
-        results && (
-          <Card sx={{ mt: 3 }}>
+        {currentTab === 3 && results && (
+        <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                 <QuestionAnswerIcon sx={{ mr: 1 }} />
@@ -989,7 +986,6 @@ function JobDetails() {
               </Alert>
             </CardContent>
           </Card>
-        )
       )}
     </Container>
   );

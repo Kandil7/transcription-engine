@@ -7,7 +7,13 @@ from pydantic import BaseModel
 from structlog import get_logger
 
 from app.services.job_service import get_job
-from app.services.rag_service import rag_service
+
+try:
+    from app.services.rag_service import rag_service
+    RAG_AVAILABLE = True
+except ImportError:
+    RAG_AVAILABLE = False
+    rag_service = None
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -36,6 +42,12 @@ async def ask_question(job_id: str, request: QuestionRequest) -> AnswerResponse:
     - **job_id**: Unique job identifier
     - **question**: Question to ask about the transcript
     """
+    if not RAG_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="RAG service is not available"
+        )
+    
     try:
         # Validate job exists and is completed
         job = await get_job(job_id)
@@ -84,6 +96,12 @@ async def setup_qa_system(job_id: str):
 
     - **job_id**: Unique job identifier
     """
+    if not RAG_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="RAG service is not available"
+        )
+    
     try:
         # Validate job exists and is completed
         job = await get_job(job_id)
